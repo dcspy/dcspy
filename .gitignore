@@ -1,4 +1,4 @@
 credentials.json
 .idea/
-__pycahce__/
+__pycache__/
 creds.txt

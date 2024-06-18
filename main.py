@@ -1,6 +1,5 @@
+import json
 import datetime
-import os
-import re
 from dcpmessage import ldds_message
 from dcpmessage.basic_client_no_makefile import BasicClient
 from dcpmessage.security.authenticator_string import AuthenticatorString
@@ -8,43 +7,35 @@ from dcpmessage.security.password_file_entry import PasswordFileEntry
 from dcpmessage.utils.byte_util import get_c_string
 
 
-def test_basic_client():
-    filepath = os.getenv('FILEPATH')
-    if not filepath:
-        raise ValueError("FILEPATH environment variable for credentials is not set")
+def test_basic_client(user, pswd, url="lrgseddn1.cr.usgs.gov"):
+    client = BasicClient(url, 16003, 30)
+    client.set_debug_stream(True)  # Enable debug logging
 
-    user, pswd = extract_credentials(filepath)
+    try:
+        # requesting Authentication
+        client.connect()
+        print("Connected to server.")
 
-    for url in ['lrgseddn1.cr.usgs.gov', 'cdadata.wcda.noaa.gov', 'nlrgs1.noaa.gov', 'lrgseddn2.cr.usgs.gov']:
-        client = BasicClient(url, 16003, 30)
-        client.set_debug_stream(True)  # Enable debug logging
+        authenticate_user(client, user, pswd)
 
-        try:
-            # requesting Authentication
-            client.connect()
-            print("Connected to server.")
+        # requesting Dcp Messages
+        for i in range(0, 1):
+            msg_id = ldds_message.LddsMessage.IdDcpBlock
+            msg_data = ""
+            request_dcp_message(client, msg_data, msg_id)
 
-            authenticate_user(client, user, pswd)
-
-            # requesting Dcp Messages
-            for i in range(0, 1):
-                msg_id = ldds_message.LddsMessage.IdDcpBlock
-                msg_data = ""
-                request_dcp_message(client, msg_data, msg_id)
-
-        except Exception as e:
-            print(f"An error occurred: {e}")
-        finally:
-            client.disconnect()
-            print("Disconnected from server.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        client.disconnect()
+        print("Disconnected from server.")
 
 
 def authenticate_user(client, user_name="user", password="pass", algo=AuthenticatorString.ALGO_SHA):
     msg_id = ldds_message.LddsMessage.IdAuthHello
     # Auth request algo (sha or sha-256) to be used based on request
     auth_str = prepare_auth_string(user_name, password, algo)
-    # Print the prepared string
-    print(f"Prepared String: {auth_str}")
+
     res = request_dcp_message(client, auth_str, msg_id)
     res = get_c_string(res, 10)
     print(f"C String: {res}")
@@ -84,24 +75,8 @@ def prepare_auth_string(user_name="user", password="pass", algo=AuthenticatorStr
     return pfe.get_username() + " " + tstr + " " + auth_str.get_string() + " " + str(14)
 
 
-def extract_credentials(filepath):
-    # Initialize variables
-    username = None
-    password = None
-
-    # Read the file and extract username and password
-    with open(filepath, 'r') as file:
-        content = file.read()
-        username_match = re.search(r"-u\s+(\S+)", content)
-        password_match = re.search(r"-p\s+(\S+)", content)
-
-        if username_match:
-            username = username_match.group(1)
-        if password_match:
-            password = password_match.group(1)
-
-    return username, password
-
-
 if __name__ == "__main__":
-    test_basic_client()
+    with open("./credentials.json", "r") as credentials_file:
+        credentials = json.load(credentials_file)
+        
+    test_basic_client(credentials["username"], credentials["password"])

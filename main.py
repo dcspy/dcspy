@@ -7,8 +7,8 @@ from dcpmessage.security.password_file_entry import PasswordFileEntry
 from dcpmessage.utils.byte_util import get_c_string
 
 
-def test_basic_client(user, pswd, url="lrgseddn1.cr.usgs.gov"):
-    client = BasicClient(url, 16003, 30)
+def test_basic_client(username, password, server="lrgseddn1.cr.usgs.gov"):
+    client = BasicClient(server, 16003, 30)
     client.set_debug_stream(True)  # Enable debug logging
 
     try:
@@ -16,7 +16,7 @@ def test_basic_client(user, pswd, url="lrgseddn1.cr.usgs.gov"):
         client.connect()
         print("Connected to server.")
 
-        authenticate_user(client, user, pswd)
+        authenticate_user(client, username, password)
 
         # requesting Dcp Messages
         for i in range(0, 1):
@@ -78,5 +78,5 @@ def prepare_auth_string(user_name="user", password="pass", algo=AuthenticatorStr
 if __name__ == "__main__":
     with open("./credentials.json", "r") as credentials_file:
         credentials = json.load(credentials_file)
-        
+
     test_basic_client(credentials["username"], credentials["password"])

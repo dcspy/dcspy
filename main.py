@@ -1,16 +1,107 @@
-# This is a sample Python script.
+import datetime
+import os
+import re
+from dcpmessage import ldds_message
+from dcpmessage.basic_client_no_makefile import BasicClient
+from dcpmessage.security.authenticator_string import AuthenticatorString
+from dcpmessage.security.password_file_entry import PasswordFileEntry
+from dcpmessage.utils.byte_util import get_c_string
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+
+def test_basic_client():
+    filepath = os.getenv('FILEPATH')
+    if not filepath:
+        raise ValueError("FILEPATH environment variable for credentials is not set")
+
+    user, pswd = extract_credentials(filepath)
+
+    for url in ['lrgseddn1.cr.usgs.gov', 'cdadata.wcda.noaa.gov', 'nlrgs1.noaa.gov', 'lrgseddn2.cr.usgs.gov']:
+        client = BasicClient(url, 16003, 30)
+        client.set_debug_stream(True)  # Enable debug logging
+
+        try:
+            # requesting Authentication
+            client.connect()
+            print("Connected to server.")
+
+            authenticate_user(client, user, pswd)
+
+            # requesting Dcp Messages
+            for i in range(0, 1):
+                msg_id = ldds_message.LddsMessage.IdDcpBlock
+                msg_data = ""
+                request_dcp_message(client, msg_data, msg_id)
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        finally:
+            client.disconnect()
+            print("Disconnected from server.")
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+def authenticate_user(client, user_name="user", password="pass", algo=AuthenticatorString.ALGO_SHA):
+    msg_id = ldds_message.LddsMessage.IdAuthHello
+    # Auth request algo (sha or sha-256) to be used based on request
+    auth_str = prepare_auth_string(user_name, password, algo)
+    # Print the prepared string
+    print(f"Prepared String: {auth_str}")
+    res = request_dcp_message(client, auth_str, msg_id)
+    res = get_c_string(res, 10)
+    print(f"C String: {res}")
+    # '?' means that server refused the login.
+    if len(res) > 0 and res[0] == '?':
+        auth_str = prepare_auth_string(user_name, password, AuthenticatorString.ALGO_SHA256)
+        request_dcp_message(client, auth_str, msg_id)
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+def request_dcp_message(client, msg_data, msg_id):
+    response = ""
+    message = ldds_message.LddsMessage(MsgId=msg_id, StrData=msg_data)
+    bytes_to_send = message.get_bytes()
+    # print(f"Bytes to send: {bytes_to_send}")
+    client.send_data(bytes_to_send)
+    # Attempt to read a response if expected
+    try:
+        response = client.receive_data(1024 * 1024 * 1024)
+    except Exception as e:
+        print(f"Error receiving data: {e}")
+    return response
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+def prepare_auth_string(user_name="user", password="pass", algo=AuthenticatorString.ALGO_SHA):
+    # Get current time in UTC
+    now = datetime.datetime.now(datetime.timezone.utc)
+    # Convert to Unix timestamp
+    timet = int(now.timestamp())
+    # Format date as "yyDDDHHmmss"
+    tstr = now.strftime("%y%j%H%M%S")
+    # Create PasswordFileEntry
+    sha_password = PasswordFileEntry.build_sha_password(user_name, password)
+    pfe = PasswordFileEntry(username=user_name, ShaPassword=sha_password)
+    # Create AuthenticatorString
+    auth_str = AuthenticatorString(timet, pfe, algo)
+    # Prepare the string
+    return pfe.get_username() + " " + tstr + " " + auth_str.get_string() + " " + str(14)
+
+
+def extract_credentials(filepath):
+    # Initialize variables
+    username = None
+    password = None
+
+    # Read the file and extract username and password
+    with open(filepath, 'r') as file:
+        content = file.read()
+        username_match = re.search(r"-u\s+(\S+)", content)
+        password_match = re.search(r"-p\s+(\S+)", content)
+
+        if username_match:
+            username = username_match.group(1)
+        if password_match:
+            password = password_match.group(1)
+
+    return username, password
+
+
+if __name__ == "__main__":
+    test_basic_client()

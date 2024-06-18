@@ -1,7 +1,5 @@
 import hashlib
-from datetime import datetime
-from utils import byte_util
-from utils import properties_util
+from dcpmessage.utils import byte_util, properties_util
 
 
 class AuthException(Exception):

@@ -1,13 +1,18 @@
 import json
 import datetime
+
+import dcpmessage.exceptions.server_exceptions
 from dcpmessage import ldds_message
 from dcpmessage.basic_client_no_makefile import BasicClient
 from dcpmessage.security.authenticator_string import AuthenticatorString
 from dcpmessage.security.password_file_entry import PasswordFileEntry
 from dcpmessage.utils.byte_util import get_c_string
+from dcpmessage.search.search_criteria import SearchCriteria, SearchSyntaxException, DcpAddress, TextUtil
+from dcpmessage.exceptions.server_exceptions import ServerError
 
 
-def test_basic_client(username, password, server="lrgseddn1.cr.usgs.gov"):
+def test_basic_client(username, password, server="cdadata.wcda.noaa.gov"):
+    # todo how to set timeout
     client = BasicClient(server, 16003, 30)
     client.set_debug_stream(True)  # Enable debug logging
 
@@ -15,11 +20,17 @@ def test_basic_client(username, password, server="lrgseddn1.cr.usgs.gov"):
         # requesting Authentication
         client.connect()
         print("Connected to server.")
-
         authenticate_user(client, username, password)
 
+        # todo look for error scenarios
+        # send search criteria
+        criteria = SearchCriteria()
+        criteria.parse_file('criteria.txt')
+        send_search_crit(client=client, filename='OBJECT', data=criteria.toString_proto(14).encode('utf-8'))
+
+        # todo message request iterations
         # requesting Dcp Messages
-        for i in range(0, 1):
+        for i in range(0, 10):
             msg_id = ldds_message.LddsMessage.IdDcpBlock
             msg_data = ""
             request_dcp_message(client, msg_data, msg_id)
@@ -41,8 +52,12 @@ def authenticate_user(client, user_name="user", password="pass", algo=Authentica
     print(f"C String: {res}")
     # '?' means that server refused the login.
     if len(res) > 0 and res[0] == '?':
-        auth_str = prepare_auth_string(user_name, password, AuthenticatorString.ALGO_SHA256)
-        request_dcp_message(client, auth_str, msg_id)
+        server_expn = ServerError(res)
+        if server_expn.Derrno == 55 and algo == AuthenticatorString.ALGO_SHA:
+            auth_str = prepare_auth_string(user_name, password, AuthenticatorString.ALGO_SHA256)
+            request_dcp_message(client, auth_str, msg_id)
+        else:
+            raise Exception(f"Could not authenticate for user:{user_name}\n{server_expn}")
 
 
 def request_dcp_message(client, msg_data, msg_id):
@@ -73,6 +88,35 @@ def prepare_auth_string(user_name="user", password="pass", algo=AuthenticatorStr
     auth_str = AuthenticatorString(timet, pfe, algo)
     # Prepare the string
     return pfe.get_username() + " " + tstr + " " + auth_str.get_string() + " " + str(14)
+
+
+def send_search_crit(client, filename, data):
+    # Construct an empty criteria message big enough for this file
+    global response
+    msg = ldds_message.LddsMessage(MsgId=ldds_message.LddsMessage.IdCriteria, StrData="")
+    msg.MsgLength = len(data) + 50
+    msg.MsgData = bytearray(msg.MsgLength)
+
+    # Create the 'header' portion containing the searchcrit filename (First 40 bytes is filename)
+    for i in range(min(40, len(filename))):
+        msg.MsgData[i] = ord(filename[i])
+    msg.MsgData[i] = 0
+
+    # Copy the file data into the message & send it out
+    for i in range(len(data)):
+        msg.MsgData[i + 50] = data[i]
+
+    print(f"Sending criteria message (filesize = {len(data)} bytes)")
+
+    client.send_data(msg.get_bytes())
+
+    # Get response
+    # Attempt to read a response if expected
+    try:
+        response = client.receive_data(1024 * 1024 * 1024)
+    except Exception as e:
+        print(f"Error receiving data: {e}")
+    print(response)
 
 
 if __name__ == "__main__":

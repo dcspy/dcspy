@@ -1,11 +1,10 @@
-import unittest, os
-
+import os
+import unittest
 from dcpmessage.search import search_criteria
-from search_criteria import SearchCriteria, SearchSyntaxException, DcpAddress, TextUtil
+from dcpmessage.search.search_criteria import SearchCriteria, DcpAddress
 
 
 class TestSearchCriteria(unittest.TestCase):
-
     def test_default_initialization(self):
         criteria = SearchCriteria()
         self.assertIsNone(criteria.LrgsSince)
@@ -64,16 +63,17 @@ class TestSearchCriteria(unittest.TestCase):
 
     def test_parse_file(self):
         criteria = SearchCriteria()
-        with open('test_search_criteria.txt', 'w') as f:
+        criteria_file = "./test_search_criteria_DELETE_AFTER_TEST.txt"
+        with open(criteria_file, 'w') as f:
             f.write('DRS_SINCE: 2022-01-01 00:00:00\n')
             f.write('DCP_NAME: dcp1\n')
             f.write('DCP_ADDRESS: address1\n')
-        criteria.parse_file('criteria.txt')
+        criteria.parse_file(criteria_file)
         print(criteria.toString_proto(14))
         self.assertEqual(criteria.LrgsSince, '2022-01-01 00:00:00')
         self.assertEqual(criteria.DcpNames, ['dcp1'])
         self.assertEqual(criteria.ExplicitDcpAddrs[0].address, 'address1')
-        os.remove('test_search_criteria.txt')
+        os.remove(criteria_file)
 
     def test_add_channel_token(self):
         criteria = SearchCriteria()
@@ -99,7 +99,3 @@ class TestSearchCriteria(unittest.TestCase):
         self.assertFalse(criteria1.equals(criteria2))
         criteria2.setLrgsSince('2022-01-01 00:00:00')
         self.assertTrue(criteria1.equals(criteria2))
-
-
-if __name__ == '__main__':
-    unittest.main()

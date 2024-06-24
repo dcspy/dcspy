@@ -1,25 +1,25 @@
 import hashlib
-
 from dcpmessage.utils.byte_util import to_hex_string, put_int4_big_endian
+from .password_file_entry import PasswordFileEntry
 
 
-class AuthenticatorString:
+class Authenticator:
     ALGO_SHA = "sha1"
     ALGO_SHA256 = "sha256"
 
-    def __init__(self, timet, pfe, algorithm=ALGO_SHA):
+    def __init__(self, timet, pfe: PasswordFileEntry, algorithm=ALGO_SHA):
         self.algorithm = algorithm
-        self.astr = to_hex_string(
-            self.make_authenticator(
-                pfe.get_username().encode('utf-8'),
-                pfe.get_sha_password(),
-                timet,
-                algorithm
-            )
-        )
+        self.string = self.__get_string(timet, pfe, algorithm)
+
+    def __get_string(self, timet, pfe, algorithm):
+        authenticator_bytes = self.__make(pfe.get_username().encode('utf-8'),
+                                          pfe.get_sha_password(),
+                                          timet,
+                                          algorithm, )
+        return to_hex_string(authenticator_bytes)
 
     @staticmethod
-    def make_authenticator(b1, b2, t, algorithm):
+    def __make(b1, b2, t, algorithm) -> bytes:
         """Create an authenticator."""
         md = hashlib.new(algorithm)
         timeb = bytearray(4)
@@ -33,9 +33,3 @@ class AuthenticatorString:
         md.update(timeb)
 
         return md.digest()
-
-    def get_string(self):
-        return self.astr
-
-    def get_algorithm(self):
-        return self.algorithm

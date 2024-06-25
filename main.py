@@ -87,8 +87,6 @@ def prepare_auth_string(user_name="user", password="pass", algo=Authenticator.AL
 
 
 def send_search_crit(client, filename, data):
-    # Construct an empty criteria message big enough for this file
-    global response
     msg = ldds_message.LddsMessage(MsgId=ldds_message.LddsMessage.IdCriteria, StrData="")
     msg.MsgLength = len(data) + 50
     msg.MsgData = bytearray(msg.MsgLength)
@@ -106,13 +104,11 @@ def send_search_crit(client, filename, data):
 
     client.send_data(msg.get_bytes())
 
-    # Get response
-    # Attempt to read a response if expected
     try:
         response = client.receive_data(1024 * 1024 * 1024)
+        print(response)
     except Exception as e:
         print(f"Error receiving data: {e}")
-    print(response)
 
 
 if __name__ == "__main__":

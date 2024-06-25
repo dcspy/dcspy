@@ -1,6 +1,5 @@
 import os
 from typing import List, Optional
-
 from dcpmessage.constants.dcp_msg_flag import DcpMsgFlag
 from dcpmessage.constants.dds_version import DdsVersion
 
@@ -52,50 +51,50 @@ class SearchCriteria:
             self.parse_file(file)
 
     def clear(self):
-        self.LrgsSince = None
-        self.LrgsUntil = None
-        self.DapsSince = None
-        self.DapsUntil = None
-        self.DomsatEmail = UNSPECIFIED
-        self.Retrans = UNSPECIFIED
-        self.DapsStatus = UNSPECIFIED
-        self.GlobalBul = UNSPECIFIED
-        self.DcpBul = UNSPECIFIED
-        self.NetlistFiles = []
-        self.DcpNames = []
-        self.ExplicitDcpAddrs = []
+        self.lrgs_since = None
+        self.lrgs_until = None
+        self.daps_since = None
+        self.daps_until = None
+        self.domsat_email = UNSPECIFIED
+        self.retrans = UNSPECIFIED
+        self.daps_status = UNSPECIFIED
+        self.global_bul = UNSPECIFIED
+        self.dcp_bul = UNSPECIFIED
+        self.netlist_files = []
+        self.dcp_names = []
+        self.explicit_dcp_address = []
         self.channels = None
         self.sources = [0] * MAX_SOURCES
-        self.numSources = 0
+        self.num_sources = 0
         self.spacecraft = SC_ANY
-        self.seqStart = -1
-        self.seqEnd = -1
-        self.baudRates = None
-        self.ascendingTimeOnly = False
-        self.realtimeSettlingDelay = False
+        self.seq_start = -1
+        self.seq_end = -1
+        self.baud_rates = None
+        self.ascending_time_only = False
+        self.realtime_settling_delay = False
         self.single = False
-        self.parityErrors = ACCEPT
+        self.parity_errors = ACCEPT
 
     def setLrgsSince(self, since: Optional[str]):
-        self.LrgsSince = since if since else None
+        self.lrgs_since = since if since else None
 
     def setLrgsUntil(self, until: Optional[str]):
-        self.LrgsUntil = until if until else None
+        self.lrgs_until = until if until else None
 
     def setDapsSince(self, since: Optional[str]):
-        self.DapsSince = since if since else None
+        self.daps_since = since if since else None
 
     def setDapsUntil(self, until: Optional[str]):
-        self.DapsUntil = until if until else None
+        self.daps_until = until if until else None
 
     def add_network_list(self, f: str):
-        self.NetlistFiles.append(f)
+        self.netlist_files.append(f)
 
     def addDcpName(self, name: str):
-        self.DcpNames.append(name)
+        self.dcp_names.append(name)
 
     def addDcpAddress(self, addr: DcpAddress):
-        self.ExplicitDcpAddrs.append(addr)
+        self.explicit_dcp_address.append(addr)
 
     def parse_file(self, file: str) -> bool:
         self.clear()
@@ -103,63 +102,63 @@ class SearchCriteria:
             return self.parse_reader(reader)
 
     def parse_reader(self, reader) -> bool:
-        rdr = reader.readlines()
+        lines = reader.readlines()
         try:
-            for ln in rdr:
-                ln = ln.strip()
-                if not ln or ln.startswith('#'):
+            for line_ in lines:
+                line_ = line_.strip()
+                if not line_ or line_.startswith('#'):
                     continue
 
-                idx = ln.find(':')
+                idx = line_.find(':')
                 if idx != -1:
-                    if ln[idx + 1] != ' ':
-                        ln = ln[:idx + 1] + ' ' + ln[idx + 1:]
+                    if line_[idx + 1] != ' ':
+                        line_ = line_[:idx + 1] + ' ' + line_[idx + 1:]
 
-                st = ln.split()
+                st = line_.split()
                 if not st:
                     continue
 
-                kw = st[0]
-                if kw.startswith('#'):
+                key_word = st[0]
+                if key_word.startswith('#'):
                     continue
 
-                if kw in ["DRS_SINCE:", "LRGS_SINCE:", "DRSSINCE:", "LRGSSINCE:"]:
-                    self.setLrgsSince(ln[len(kw):].strip())
-                elif kw in ["DRS_UNTIL:", "LRGS_UNTIL:", "DRSUNTIL:", "LRGSUNTIL:"]:
-                    self.setLrgsUntil(ln[len(kw):].strip())
-                elif kw in ["DAPS_SINCE:", "DAPSSINCE:"]:
-                    self.setDapsSince(ln[len(kw):].strip())
-                elif kw in ["DAPS_UNTIL:", "DAPSUNTIL:"]:
-                    self.setDapsUntil(ln[len(kw):].strip())
-                elif kw in ["NETWORKLIST:", "NETWORK_LIST:"]:
+                if key_word in ["DRS_SINCE:", "LRGS_SINCE:", "DRSSINCE:", "LRGSSINCE:"]:
+                    self.setLrgsSince(line_[len(key_word):].strip())
+                elif key_word in ["DRS_UNTIL:", "LRGS_UNTIL:", "DRSUNTIL:", "LRGSUNTIL:"]:
+                    self.setLrgsUntil(line_[len(key_word):].strip())
+                elif key_word in ["DAPS_SINCE:", "DAPSSINCE:"]:
+                    self.setDapsSince(line_[len(key_word):].strip())
+                elif key_word in ["DAPS_UNTIL:", "DAPSUNTIL:"]:
+                    self.setDapsUntil(line_[len(key_word):].strip())
+                elif key_word in ["NETWORKLIST:", "NETWORK_LIST:"]:
                     if len(st) < 2:
                         raise SearchSyntaxException("Expected network list name.")
                     self.add_network_list(st[1])
-                elif kw == "DCP_NAME:":
+                elif key_word == "DCP_NAME:":
                     if len(st) < 2:
                         raise SearchSyntaxException("Expected DCP name.")
                     self.addDcpName(st[1])
-                elif kw in ["DCP_ADDRESS:", "DCPADDRESS:"]:
+                elif key_word in ["DCP_ADDRESS:", "DCPADDRESS:"]:
                     if len(st) < 2:
                         raise SearchSyntaxException("Expected DCP address.")
                     self.addDcpAddress(DcpAddress(st[1]))
-                elif kw == "ELECTRONIC_MAIL:":
-                    self.DomsatEmail = self.parse_char(st)
-                elif kw == "DAPS_STATUS:":
-                    self.DapsStatus = self.parse_char(st)
-                elif kw == "RETRANSMITTED:":
-                    self.Retrans = self.parse_char(st)
-                elif kw == "GLOB_BUL:":
-                    self.GlobalBul = self.parse_char(st)
-                elif kw == "DCP_BUL:":
-                    self.DcpBul = self.parse_char(st)
-                elif kw == "CHANNEL:":
+                elif key_word == "ELECTRONIC_MAIL:":
+                    self.domsat_email = self.parse_char(st)
+                elif key_word == "DAPS_STATUS:":
+                    self.daps_status = self.parse_char(st)
+                elif key_word == "RETRANSMITTED:":
+                    self.retrans = self.parse_char(st)
+                elif key_word == "GLOB_BUL:":
+                    self.global_bul = self.parse_char(st)
+                elif key_word == "DCP_BUL:":
+                    self.dcp_bul = self.parse_char(st)
+                elif key_word == "CHANNEL:":
                     self.parse_channel(st)
-                elif kw == "SOURCE:":
+                elif key_word == "SOURCE:":
                     if len(st) < 2:
                         raise SearchSyntaxException("Expected source name")
-                    self.addSource(DcpMsgFlag.source_name_to_value(st[1]))
-                elif kw == "SPACECRAFT:":
+                    self.add_source(DcpMsgFlag.source_name_to_value(st[1]))
+                elif key_word == "SPACECRAFT:":
                     if len(st) < 2:
                         raise SearchSyntaxException("Expected E or W.")
                     c = st[1][0]
@@ -169,29 +168,29 @@ class SearchCriteria:
                         self.spacecraft = SC_WEST
                     else:
                         raise SearchSyntaxException("Bad SPACECRAFT value")
-                elif kw == "SEQUENCE:":
+                elif key_word == "SEQUENCE:":
                     if len(st) < 3:
                         raise SearchSyntaxException("Expected sequence start and end.")
-                    self.seqStart = int(st[1])
-                    self.seqEnd = int(st[2])
-                elif kw == "BAUD:":
-                    self.baudRates = ' '.join(st[1:]).strip()
-                elif kw == "ASCENDING_TIME:":
+                    self.seq_start = int(st[1])
+                    self.seq_end = int(st[2])
+                elif key_word == "BAUD:":
+                    self.baud_rates = ' '.join(st[1:]).strip()
+                elif key_word == "ASCENDING_TIME:":
                     if len(st) < 2:
                         raise SearchSyntaxException("ASCENDING_TIME without true/false argument.")
-                    self.ascendingTimeOnly = TextUtil.str2boolean(st[1])
-                elif kw == "RT_SETTLE_DELAY:":
+                    self.ascending_time_only = TextUtil.str2boolean(st[1])
+                elif key_word == "RT_SETTLE_DELAY:":
                     if len(st) < 2:
                         raise SearchSyntaxException("RT_SETTLE_DELAY without true/false argument.")
-                    self.realtimeSettlingDelay = TextUtil.str2boolean(st[1])
-                elif kw == "SINGLE:":
+                    self.realtime_settling_delay = TextUtil.str2boolean(st[1])
+                elif key_word == "SINGLE:":
                     if len(st) < 2:
                         raise SearchSyntaxException("SINGLE without true/false argument.")
                     self.single = TextUtil.str2boolean(st[1])
-                elif kw == "PARITY_ERROR:":
-                    self.parityErrors = self.parse_char(st)
+                elif key_word == "PARITY_ERROR:":
+                    self.parity_errors = self.parse_char(st)
                 else:
-                    raise SearchSyntaxException(f"Unrecognized criteria name '{ln}'")
+                    raise SearchSyntaxException(f"Unrecognized criteria name '{line_}'")
             return True
         except SearchSyntaxException as ex:
             raise ex
@@ -218,13 +217,13 @@ class SearchCriteria:
                 start = int(t[:hidx])
                 end = int(t[hidx + 1:])
                 for i in range(start, end):
-                    self.addChannelToken(f"&{i}")
+                    self.add_channel_token(f"&{i}")
             except Exception:
                 raise SearchSyntaxException(f"Bad channel range '{t}'")
         else:
-            self.addChannelToken(t)
+            self.add_channel_token(t)
 
-    def addChannelToken(self, t: str):
+    def add_channel_token(self, t: str):
         and_flag = False
         if t[0] == '&':
             and_flag = True
@@ -239,46 +238,46 @@ class SearchCriteria:
         else:
             self.channels.append(chan)
 
-    def addSource(self, srcCode: int):
-        if self.numSources >= MAX_SOURCES:
+    def add_source(self, srcCode: int):
+        if self.num_sources >= MAX_SOURCES:
             return
         if srcCode not in self.sources:
-            self.sources[self.numSources] = srcCode
-            self.numSources += 1
+            self.sources[self.num_sources] = srcCode
+            self.num_sources += 1
 
-    def toString(self) -> str:
-        return self.toString_proto(int(1e6))  # Use a large number to include all fields
+    def to_string(self) -> str:
+        return self.to_string_proto(int(1e6))  # Use a large number to include all fields
 
-    def toString_proto(self, protoVersion: int) -> str:
-        needLocalFilter = False
+    def to_string_proto(self, proto_version: int) -> str:
+        need_local_filter = False
 
         ret = ["#\n# LRGS Search Criteria\n#\n"]
 
-        if self.LrgsSince:
-            ret.append(f"DRS_SINCE: {self.LrgsSince}{lineSep}")
-        if self.LrgsUntil:
-            ret.append(f"DRS_UNTIL: {self.LrgsUntil}{lineSep}")
-        if self.DapsSince:
-            ret.append(f"DAPS_SINCE: {self.DapsSince}{lineSep}")
-        if self.DapsUntil:
-            ret.append(f"DAPS_UNTIL: {self.DapsUntil}{lineSep}")
+        if self.lrgs_since:
+            ret.append(f"DRS_SINCE: {self.lrgs_since}{lineSep}")
+        if self.lrgs_until:
+            ret.append(f"DRS_UNTIL: {self.lrgs_until}{lineSep}")
+        if self.daps_since:
+            ret.append(f"DAPS_SINCE: {self.daps_since}{lineSep}")
+        if self.daps_until:
+            ret.append(f"DAPS_UNTIL: {self.daps_until}{lineSep}")
 
-        for nlf in self.NetlistFiles:
+        for nlf in self.netlist_files:
             ret.append(f"NETWORKLIST: {nlf}{lineSep}")
-        for name in self.DcpNames:
+        for name in self.dcp_names:
             ret.append(f"DCP_NAME: {name}{lineSep}")
-        for addr in self.ExplicitDcpAddrs:
+        for addr in self.explicit_dcp_address:
             ret.append(f"DCP_ADDRESS: {addr.address}{lineSep}")
-        if self.DomsatEmail != UNSPECIFIED:
-            ret.append(f"ELECTRONIC_MAIL: {self.DomsatEmail}{lineSep}")
-        if self.DapsStatus != UNSPECIFIED:
-            ret.append(f"DAPS_STATUS: {self.DapsStatus}{lineSep}")
-        if self.Retrans != UNSPECIFIED:
-            ret.append(f"RETRANSMITTED: {self.Retrans}{lineSep}")
-        if self.GlobalBul != UNSPECIFIED:
-            ret.append(f"GLOB_BUL: {self.GlobalBul}{lineSep}")
-        if self.DcpBul != UNSPECIFIED:
-            ret.append(f"DCP_BUL: {self.DcpBul}{lineSep}")
+        if self.domsat_email != UNSPECIFIED:
+            ret.append(f"ELECTRONIC_MAIL: {self.domsat_email}{lineSep}")
+        if self.daps_status != UNSPECIFIED:
+            ret.append(f"DAPS_STATUS: {self.daps_status}{lineSep}")
+        if self.retrans != UNSPECIFIED:
+            ret.append(f"RETRANSMITTED: {self.retrans}{lineSep}")
+        if self.global_bul != UNSPECIFIED:
+            ret.append(f"GLOB_BUL: {self.global_bul}{lineSep}")
+        if self.dcp_bul != UNSPECIFIED:
+            ret.append(f"DCP_BUL: {self.dcp_bul}{lineSep}")
 
         if self.channels:
             individual = True
@@ -297,96 +296,92 @@ class SearchCriteria:
                 for c in self.channels:
                     ret.append(f"CHANNEL: {'&' if (c & CHANNEL_AND) else '|'}{c & 0x1ff}{lineSep}")
 
-        atLeastOneGoesTypeSpecified = False
-        atLeastOneNonGoesTypeSpecified = False
-        for i in range(self.numSources):
-            sourceName = DcpMsgFlag.source_value_to_name(self.sources[i])
-            if not sourceName:
+        at_least_one_goes_type_specified = False
+        at_least_one_non_goes_type_specified = False
+        for i in range(self.num_sources):
+            source_name = DcpMsgFlag.source_value_to_name(self.sources[i])
+            if not source_name:
                 continue
 
-            if protoVersion < 12 and sourceName.lower() in ["goes_selftimed", "goes_random"]:
-                atLeastOneGoesTypeSpecified = True
+            if proto_version < 12 and source_name.lower() in ["goes_selftimed", "goes_random"]:
+                at_least_one_goes_type_specified = True
                 continue
-            if sourceName.lower() in ["netdcp", "iridium", "other"]:
-                atLeastOneNonGoesTypeSpecified = True
-            ret.append(f"SOURCE: {sourceName}{lineSep}")
+            if source_name.lower() in ["netdcp", "iridium", "other"]:
+                at_least_one_non_goes_type_specified = True
+            ret.append(f"SOURCE: {source_name}{lineSep}")
 
-        if protoVersion < DdsVersion.version_12 and atLeastOneGoesTypeSpecified and atLeastOneNonGoesTypeSpecified:
+        if proto_version < DdsVersion.version_12 and at_least_one_goes_type_specified and at_least_one_non_goes_type_specified:
             ret.extend([f"SOURCE: {s}{lineSep}" for s in ["DOMSAT", "DRGS", "NOAAPORT", "LRIT", "DDS"]])
-        if protoVersion < DdsVersion.version_12 and atLeastOneGoesTypeSpecified:
-            needLocalFilter = True
+        if proto_version < DdsVersion.version_12 and at_least_one_goes_type_specified:
+            need_local_filter = True
 
         if self.spacecraft in [SC_EAST, SC_WEST]:
             ret.append(f"SPACECRAFT: {self.spacecraft}{lineSep}")
 
-        if self.seqStart != -1 and self.seqEnd != -1:
-            ret.append(f"SEQUENCE: {self.seqStart} {self.seqEnd}{lineSep}")
+        if self.seq_start != -1 and self.seq_end != -1:
+            ret.append(f"SEQUENCE: {self.seq_start} {self.seq_end}{lineSep}")
 
-        if self.baudRates and self.baudRates.strip():
-            ret.append(f"BAUD: {self.baudRates}{lineSep}")
+        if self.baud_rates and self.baud_rates.strip():
+            ret.append(f"BAUD: {self.baud_rates}{lineSep}")
 
-        if protoVersion >= DdsVersion.version_9 and self.ascendingTimeOnly:
+        if proto_version >= DdsVersion.version_9 and self.ascending_time_only:
             ret.append(f"ASCENDING_TIME: true{lineSep}")
 
-        if protoVersion >= DdsVersion.version_9 and self.realtimeSettlingDelay:
+        if proto_version >= DdsVersion.version_9 and self.realtime_settling_delay:
             ret.append(f"RT_SETTLE_DELAY: true{lineSep}")
-        if protoVersion >= 11 and self.single:
+        if proto_version >= 11 and self.single:
             ret.append(f"SINGLE: true{lineSep}")
 
-        if protoVersion >= DdsVersion.version_12 and self.parityErrors != ACCEPT:
-            ret.append(f"PARITY_ERROR: {self.parityErrors}{lineSep}")
-            needLocalFilter = True
+        if proto_version >= DdsVersion.version_12 and self.parity_errors != ACCEPT:
+            ret.append(f"PARITY_ERROR: {self.parity_errors}{lineSep}")
+            need_local_filter = True
 
-        if needLocalFilter:
-            self.localFilter = SearchCritLocalFilter(self, protoVersion)
+        if need_local_filter:
+            self.local_filter = SearchCritLocalFilter(self, proto_version)
 
         return ''.join(ret)
 
-    def getSearchCritLocalFilter(self):
-        ret = self.localFilter
-        self.localFilter = None
+    def get_search_criteria_local_filter(self):
+        ret = self.local_filter
+        self.local_filter = None
         return ret
 
     def equals(self, rhs) -> bool:
-        if not TextUtil.strEqual(self.LrgsSince, rhs.LrgsSince):
-            return False
-        if not TextUtil.strEqual(self.LrgsUntil, rhs.LrgsUntil):
-            return False
-        if not TextUtil.strEqual(self.DapsSince, rhs.DapsSince):
-            return False
-        if not TextUtil.strEqual(self.DapsUntil, rhs.DapsUntil):
-            return False
-        if not TextUtil.strEqual(self.baudRates, rhs.baudRates):
+        if (self.lrgs_since != rhs.lrgs_since
+                or self.lrgs_until != rhs.lrgs_until
+                or self.daps_since != rhs.daps_since
+                or self.daps_until != rhs.daps_until
+                or self.baud_rates != rhs.baud_rates):
             return False
 
-        if (self.ascendingTimeOnly != rhs.ascendingTimeOnly
-                or self.realtimeSettlingDelay != rhs.realtimeSettlingDelay
+        if (self.ascending_time_only != rhs.ascending_time_only
+                or self.realtime_settling_delay != rhs.realtime_settling_delay
                 or self.single != rhs.single
-                or self.seqStart != rhs.seqStart
-                or self.seqEnd != rhs.seqEnd):
+                or self.seq_start != rhs.seq_start
+                or self.seq_end != rhs.seq_end):
             return False
 
-        if (self.DapsStatus != rhs.DapsStatus
-                or self.parityErrors != rhs.parityErrors
+        if (self.daps_status != rhs.daps_status
+                or self.parity_errors != rhs.parity_errors
                 or self.spacecraft != rhs.spacecraft):
             return False
 
-        if len(self.NetlistFiles) != len(rhs.NetlistFiles):
+        if len(self.netlist_files) != len(rhs.netlist_files):
             return False
-        for nl in self.NetlistFiles:
-            if nl not in rhs.NetlistFiles:
+        for netlist_file in self.netlist_files:
+            if netlist_file not in rhs.netlist_files:
                 return False
 
-        if len(self.DcpNames) != len(rhs.DcpNames):
+        if len(self.dcp_names) != len(rhs.dcp_names):
             return False
-        for nl in self.DcpNames:
-            if nl not in rhs.DcpNames:
+        for dcp_name in self.dcp_names:
+            if dcp_name not in rhs.dcp_names:
                 return False
 
-        if len(self.ExplicitDcpAddrs) != len(rhs.ExplicitDcpAddrs):
+        if len(self.explicit_dcp_address) != len(rhs.explicit_dcp_address):
             return False
-        for nl in self.ExplicitDcpAddrs:
-            if nl not in rhs.ExplicitDcpAddrs:
+        for explicit_dcp_address in self.explicit_dcp_address:
+            if explicit_dcp_address not in rhs.explicit_dcp_address:
                 return False
 
         if (self.channels is None) != (rhs.channels is None):
@@ -394,11 +389,11 @@ class SearchCriteria:
         if self.channels:
             if len(self.channels) != len(rhs.channels):
                 return False
-            for chan in self.channels:
-                if chan not in rhs.channels:
+            for channel in self.channels:
+                if channel not in rhs.channels:
                     return False
 
-        if self.numSources != rhs.numSources:
+        if self.num_sources != rhs.num_sources:
             return False
         for source in self.sources:
             if source not in rhs.sources:

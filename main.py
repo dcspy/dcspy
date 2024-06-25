@@ -28,7 +28,7 @@ def test_basic_client(username,
         # send search criteria
         criteria = SearchCriteria()
         criteria.parse_file(search_criteria)
-        send_search_crit(client=client, filename='OBJECT', data=criteria.toString_proto(14).encode('utf-8'))
+        send_search_crit(client=client, filename='OBJECT', data=criteria.to_string_proto(14).encode('utf-8'))
 
         # TODO: message request iterations
         # requesting Dcp Messages

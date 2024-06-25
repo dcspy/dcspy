@@ -51,14 +51,12 @@ class BasicClient:
         if self.socket is None:
             raise IOError("BasicClient socket closed.")
         self.socket.sendall(data)
-        self.log(f"Sent data: {data}")
 
     def receive_data(self, buffer_size=1024):
         """Receive data from the socket."""
         if self.socket is None:
             raise IOError("BasicClient socket closed.")
         data = self.socket.recv(buffer_size)
-        self.log(f"Received data: {data}")
         return data
 
     def receive_all_data(self):

@@ -1,18 +1,20 @@
 import json
 import datetime
-
-import dcpmessage.exceptions.server_exceptions
 from dcpmessage import ldds_message
 from dcpmessage.basic_client_no_makefile import BasicClient
-from dcpmessage.security.authenticator_string import AuthenticatorString
+from dcpmessage.security.authenticator_string import Authenticator
 from dcpmessage.security.password_file_entry import PasswordFileEntry
 from dcpmessage.utils.byte_util import get_c_string
 from dcpmessage.search.search_criteria import SearchCriteria, SearchSyntaxException, DcpAddress, TextUtil
 from dcpmessage.exceptions.server_exceptions import ServerError
 
 
-def test_basic_client(username, password, server="cdadata.wcda.noaa.gov"):
-    # todo how to set timeout
+def test_basic_client(username,
+                      password,
+                      search_criteria,
+                      server,
+                      ):
+    # TODO: how to set timeout
     client = BasicClient(server, 16003, 30)
     client.set_debug_stream(True)  # Enable debug logging
 
@@ -22,19 +24,18 @@ def test_basic_client(username, password, server="cdadata.wcda.noaa.gov"):
         print("Connected to server.")
         authenticate_user(client, username, password)
 
-        # todo look for error scenarios
+        # TODO: look for error scenarios
         # send search criteria
         criteria = SearchCriteria()
-        criteria.parse_file('criteria.txt')
+        criteria.parse_file(search_criteria)
         send_search_crit(client=client, filename='OBJECT', data=criteria.toString_proto(14).encode('utf-8'))
 
-        # todo message request iterations
+        # TODO: message request iterations
         # requesting Dcp Messages
-        for i in range(0, 10):
+        for _ in range(2):
             msg_id = ldds_message.LddsMessage.IdDcpBlock
-            msg_data = ""
-            request_dcp_message(client, msg_data, msg_id)
-
+            dcp_message = request_dcp_message(client, msg_id)
+            print(dcp_message)
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
@@ -42,25 +43,25 @@ def test_basic_client(username, password, server="cdadata.wcda.noaa.gov"):
         print("Disconnected from server.")
 
 
-def authenticate_user(client, user_name="user", password="pass", algo=AuthenticatorString.ALGO_SHA):
+def authenticate_user(client, user_name="user", password="pass", algo=Authenticator.ALGO_SHA):
     msg_id = ldds_message.LddsMessage.IdAuthHello
     # Auth request algo (sha or sha-256) to be used based on request
     auth_str = prepare_auth_string(user_name, password, algo)
 
-    res = request_dcp_message(client, auth_str, msg_id)
+    res = request_dcp_message(client, msg_id, auth_str)
     res = get_c_string(res, 10)
     print(f"C String: {res}")
     # '?' means that server refused the login.
     if len(res) > 0 and res[0] == '?':
         server_expn = ServerError(res)
-        if server_expn.Derrno == 55 and algo == AuthenticatorString.ALGO_SHA:
-            auth_str = prepare_auth_string(user_name, password, AuthenticatorString.ALGO_SHA256)
-            request_dcp_message(client, auth_str, msg_id)
+        if server_expn.Derrno == 55 and algo == Authenticator.ALGO_SHA:
+            auth_str = prepare_auth_string(user_name, password, Authenticator.ALGO_SHA256)
+            request_dcp_message(client, msg_id, auth_str)
         else:
             raise Exception(f"Could not authenticate for user:{user_name}\n{server_expn}")
 
 
-def request_dcp_message(client, msg_data, msg_id):
+def request_dcp_message(client, msg_id, msg_data=""):
     response = ""
     message = ldds_message.LddsMessage(MsgId=msg_id, StrData=msg_data)
     bytes_to_send = message.get_bytes()
@@ -74,20 +75,15 @@ def request_dcp_message(client, msg_data, msg_id):
     return response
 
 
-def prepare_auth_string(user_name="user", password="pass", algo=AuthenticatorString.ALGO_SHA):
-    # Get current time in UTC
+def prepare_auth_string(user_name="user", password="pass", algo=Authenticator.ALGO_SHA):
     now = datetime.datetime.now(datetime.timezone.utc)
-    # Convert to Unix timestamp
-    timet = int(now.timestamp())
-    # Format date as "yyDDDHHmmss"
+    timet = int(now.timestamp())  # Convert to Unix timestamp
     tstr = now.strftime("%y%j%H%M%S")
-    # Create PasswordFileEntry
     sha_password = PasswordFileEntry.build_sha_password(user_name, password)
     pfe = PasswordFileEntry(username=user_name, ShaPassword=sha_password)
-    # Create AuthenticatorString
-    auth_str = AuthenticatorString(timet, pfe, algo)
-    # Prepare the string
-    return pfe.get_username() + " " + tstr + " " + auth_str.get_string() + " " + str(14)
+    authenticator = Authenticator(timet, pfe, algo)
+    auth_string = pfe.get_username() + " " + tstr + " " + authenticator.string + " " + str(14)  # Prepare the string
+    return auth_string
 
 
 def send_search_crit(client, filename, data):
@@ -123,4 +119,7 @@ if __name__ == "__main__":
     with open("./credentials.json", "r") as credentials_file:
         credentials = json.load(credentials_file)
 
-    test_basic_client(credentials["username"], credentials["password"])
+    test_basic_client(username=credentials["username"],
+                      password=credentials["password"],
+                      search_criteria="./test_search_criteria.sc",
+                      server="cdadata.wcda.noaa.gov")

@@ -346,57 +346,57 @@ class SearchCriteria:
         self.local_filter = None
         return ret
 
-    def equals(self, rhs) -> bool:
-        if (self.lrgs_since != rhs.lrgs_since
-                or self.lrgs_until != rhs.lrgs_until
-                or self.daps_since != rhs.daps_since
-                or self.daps_until != rhs.daps_until
-                or self.baud_rates != rhs.baud_rates):
+    def __eq__(self, other) -> bool:
+        if (self.lrgs_since != other.lrgs_since
+                or self.lrgs_until != other.lrgs_until
+                or self.daps_since != other.daps_since
+                or self.daps_until != other.daps_until
+                or self.baud_rates != other.baud_rates):
             return False
 
-        if (self.ascending_time_only != rhs.ascending_time_only
-                or self.realtime_settling_delay != rhs.realtime_settling_delay
-                or self.single != rhs.single
-                or self.seq_start != rhs.seq_start
-                or self.seq_end != rhs.seq_end):
+        if (self.ascending_time_only != other.ascending_time_only
+                or self.realtime_settling_delay != other.realtime_settling_delay
+                or self.single != other.single
+                or self.seq_start != other.seq_start
+                or self.seq_end != other.seq_end):
             return False
 
-        if (self.daps_status != rhs.daps_status
-                or self.parity_errors != rhs.parity_errors
-                or self.spacecraft != rhs.spacecraft):
+        if (self.daps_status != other.daps_status
+                or self.parity_errors != other.parity_errors
+                or self.spacecraft != other.spacecraft):
             return False
 
-        if len(self.netlist_files) != len(rhs.netlist_files):
+        if len(self.netlist_files) != len(other.netlist_files):
             return False
         for netlist_file in self.netlist_files:
-            if netlist_file not in rhs.netlist_files:
+            if netlist_file not in other.netlist_files:
                 return False
 
-        if len(self.dcp_names) != len(rhs.dcp_names):
+        if len(self.dcp_names) != len(other.dcp_names):
             return False
         for dcp_name in self.dcp_names:
-            if dcp_name not in rhs.dcp_names:
+            if dcp_name not in other.dcp_names:
                 return False
 
-        if len(self.explicit_dcp_address) != len(rhs.explicit_dcp_address):
+        if len(self.explicit_dcp_address) != len(other.explicit_dcp_address):
             return False
         for explicit_dcp_address in self.explicit_dcp_address:
-            if explicit_dcp_address not in rhs.explicit_dcp_address:
+            if explicit_dcp_address not in other.explicit_dcp_address:
                 return False
 
-        if (self.channels is None) != (rhs.channels is None):
+        if (self.channels is None) != (other.channels is None):
             return False
         if self.channels:
-            if len(self.channels) != len(rhs.channels):
+            if len(self.channels) != len(other.channels):
                 return False
             for channel in self.channels:
-                if channel not in rhs.channels:
+                if channel not in other.channels:
                     return False
 
-        if self.num_sources != rhs.num_sources:
+        if self.num_sources != other.num_sources:
             return False
         for source in self.sources:
-            if source not in rhs.sources:
+            if source not in other.sources:
                 return False
 
         return True

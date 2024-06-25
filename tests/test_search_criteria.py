@@ -94,8 +94,8 @@ class TestSearchCriteria(unittest.TestCase):
     def test_equals(self):
         criteria1 = SearchCriteria()
         criteria2 = SearchCriteria()
-        self.assertTrue(criteria1.equals(criteria2))
+        assert criteria1 == criteria2
         criteria1.setLrgsSince('2022-01-01 00:00:00')
-        self.assertFalse(criteria1.equals(criteria2))
+        assert criteria1 != criteria2
         criteria2.setLrgsSince('2022-01-01 00:00:00')
-        self.assertTrue(criteria1.equals(criteria2))
+        assert criteria1 == criteria2

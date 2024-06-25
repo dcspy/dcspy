@@ -7,7 +7,7 @@ class ArrayUtil:
     @staticmethod
     def get_field(byte_array, start, length):
         """Get a specific field from a byte array."""
-        return byte_array[start:start+length]
+        return byte_array[start:start + length]
 
     @staticmethod
     def resize(byte_array, new_length):
@@ -19,7 +19,6 @@ class LddsMessage:
     ValidHdrLength = 10
     ValidSync = b"FAF0"
     ValidMaxDataLength = 99000
-
     ValidIds = "abcdefghijklmnopqrstu"
     IdHello = 'a'
     IdGoodbye = 'b'
@@ -43,7 +42,7 @@ class LddsMessage:
     IdUnused_7 = 't'
     IdUser = 'u'
 
-    def __init__(self, hdr=None, MsgId=None, StrData=None):
+    def __init__(self, hdr=None, message_id=None, StrData=None):
         if hdr is not None:
             if len(hdr) < self.ValidHdrLength:
                 raise ProtocolError(
@@ -54,10 +53,10 @@ class LddsMessage:
                 raise ProtocolError(
                     f"Invalid LDDS message header - bad sync '{sync}'")
 
-            self.MsgId = chr(hdr[4])
-            if self.MsgId not in self.ValidIds:
+            self.message_id = chr(hdr[4])
+            if self.message_id not in self.ValidIds:
                 raise ProtocolError(
-                    f"Invalid LDDS message header - ID = '{self.MsgId}'")
+                    f"Invalid LDDS message header - ID = '{self.message_id}'")
 
             lenbytes = ArrayUtil.get_field(hdr, 5, 5)
             for i in range(5):
@@ -66,28 +65,27 @@ class LddsMessage:
 
             lenstr = bytes(lenbytes).decode()
             try:
-                self.MsgLength = int(lenstr)
+                self.message_length = int(lenstr)
             except ValueError:
-                raise ProtocolError(
-                    f"Invalid LDDS message header - bad length field = '{lenstr}'")
-
-        elif MsgId is not None and StrData is not None:
-            self.MsgId = MsgId
-            self.MsgLength = len(StrData) if StrData else 0
-            self.MsgData = ArrayUtil.resize(StrData.encode(), self.MsgLength) if self.MsgLength > 0 else None
+                raise ProtocolError(f"Invalid LDDS message header - bad length field = '{lenstr}'")
+        elif message_id is not None and StrData is not None:
+            self.message_id = message_id
+            self.message_length = len(StrData) if StrData else 0
+            self.message_data = ArrayUtil.resize(StrData.encode(), self.message_length) \
+                if self.message_length > 0 else None
 
     def get_bytes(self):
-        ret = bytearray(self.ValidHdrLength + self.MsgLength)
+        ret = bytearray(self.ValidHdrLength + self.message_length)
         ret[:4] = self.ValidSync
-        ret[4] = ord(self.MsgId)
+        ret[4] = ord(self.message_id)
 
-        ret[5] = 48 + self.MsgLength // 10000
-        ret[6] = 48 + (self.MsgLength % 10000) // 1000
-        ret[7] = 48 + (self.MsgLength % 1000) // 100
-        ret[8] = 48 + (self.MsgLength % 100) // 10
-        ret[9] = 48 + (self.MsgLength % 10)
+        ret[5] = 48 + self.message_length // 10000
+        ret[6] = 48 + (self.message_length % 10000) // 1000
+        ret[7] = 48 + (self.message_length % 1000) // 100
+        ret[8] = 48 + (self.message_length % 100) // 10
+        ret[9] = 48 + (self.message_length % 10)
 
-        if self.MsgLength > 0 and self.MsgData is not None:
-            ret[10:10+self.MsgLength] = self.MsgData
+        if self.message_length > 0 and self.message_data is not None:
+            ret[10:10 + self.message_length] = self.message_data
 
         return bytes(ret)

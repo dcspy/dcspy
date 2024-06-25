@@ -1,6 +1,6 @@
 import json
 from datetime import datetime, timezone
-from dcpmessage import ldds_message
+from dcpmessage.ldds_message import LddsMessage
 from dcpmessage.basic_client_no_makefile import BasicClient
 from dcpmessage.security import Authenticator
 from dcpmessage.security import PasswordFileEntry
@@ -33,7 +33,7 @@ def test_basic_client(username,
         # TODO: message request iterations
         # requesting Dcp Messages
         for _ in range(2):
-            msg_id = ldds_message.LddsMessage.IdDcpBlock
+            msg_id = LddsMessage.IdDcpBlock
             dcp_message = request_dcp_message(client, msg_id)
             print(dcp_message)
     except Exception as e:
@@ -44,7 +44,7 @@ def test_basic_client(username,
 
 
 def authenticate_user(client, user_name="user", password="pass", algo=Authenticator.ALGO_SHA):
-    msg_id = ldds_message.LddsMessage.IdAuthHello
+    msg_id = LddsMessage.IdAuthHello
     # Auth request algo (sha or sha-256) to be used based on request
     auth_str = prepare_auth_string(user_name, password, algo)
 
@@ -63,7 +63,7 @@ def authenticate_user(client, user_name="user", password="pass", algo=Authentica
 
 def request_dcp_message(client, msg_id, msg_data=""):
     response = ""
-    message = ldds_message.LddsMessage(MsgId=msg_id, StrData=msg_data)
+    message = LddsMessage(message_id=msg_id, StrData=msg_data)
     bytes_to_send = message.get_bytes()
     # print(f"Bytes to send: {bytes_to_send}")
     client.send_data(bytes_to_send)
@@ -87,23 +87,21 @@ def prepare_auth_string(user_name="user", password="pass", algo=Authenticator.AL
 
 
 def send_search_crit(client, filename, data):
-    msg = ldds_message.LddsMessage(MsgId=ldds_message.LddsMessage.IdCriteria, StrData="")
-    msg.MsgLength = len(data) + 50
-    msg.MsgData = bytearray(msg.MsgLength)
+    msg = LddsMessage(message_id=LddsMessage.IdCriteria, StrData="")
+    msg.message_length = len(data) + 50
+    msg.message_data = bytearray(msg.message_length)
 
     # Create the 'header' portion containing the searchcrit filename (First 40 bytes is filename)
     for i in range(min(40, len(filename))):
-        msg.MsgData[i] = ord(filename[i])
-    msg.MsgData[i] = 0
+        msg.message_data[i] = ord(filename[i])
+    msg.message_data[i] = 0
 
     # Copy the file data into the message & send it out
     for i in range(len(data)):
-        msg.MsgData[i + 50] = data[i]
+        msg.message_data[i + 50] = data[i]
 
     print(f"Sending criteria message (filesize = {len(data)} bytes)")
-
     client.send_data(msg.get_bytes())
-
     try:
         response = client.receive_data(1024 * 1024 * 1024)
         print(response)

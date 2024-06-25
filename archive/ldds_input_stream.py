@@ -11,16 +11,16 @@ class LddsInputStream:
     def get_message(self) -> LddsMessage:
         """Block waiting for a new message."""
         ret = self.read_header()  # Block waiting for header
-        ret.MsgData = bytearray(ret.MsgLength)  # Allocate bytes for message body
+        ret.message_data = bytearray(ret.message_length)  # Allocate bytes for message body
 
         # Block waiting for body
         done = 0
-        while done < ret.MsgLength:
-            n = self.istrm.readinto(ret.MsgData[done:])
+        while done < ret.message_length:
+            n = self.istrm.readinto(ret.message_data[done:])
             if n <= 0:
                 raise IOError("Socket closed.")
             done += n
-            print(f"Read {n} bytes, {done}/{ret.MsgLength} bytes done")
+            print(f"Read {n} bytes, {done}/{ret.message_length} bytes done")
 
         return ret
 

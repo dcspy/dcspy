@@ -1,11 +1,11 @@
 import json
-import datetime
+from datetime import datetime, timezone
 from dcpmessage import ldds_message
 from dcpmessage.basic_client_no_makefile import BasicClient
-from dcpmessage.security.authenticator_string import Authenticator
-from dcpmessage.security.password_file_entry import PasswordFileEntry
+from dcpmessage.security import Authenticator
+from dcpmessage.security import PasswordFileEntry
 from dcpmessage.utils.byte_util import get_c_string
-from dcpmessage.search.search_criteria import SearchCriteria, SearchSyntaxException, DcpAddress, TextUtil
+from dcpmessage.search.search_criteria import SearchCriteria
 from dcpmessage.exceptions.server_exceptions import ServerError
 
 
@@ -76,7 +76,7 @@ def request_dcp_message(client, msg_id, msg_data=""):
 
 
 def prepare_auth_string(user_name="user", password="pass", algo=Authenticator.ALGO_SHA):
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.now(timezone.utc)
     timet = int(now.timestamp())  # Convert to Unix timestamp
     tstr = now.strftime("%y%j%H%M%S")
     sha_password = PasswordFileEntry.build_sha_password(user_name, password)

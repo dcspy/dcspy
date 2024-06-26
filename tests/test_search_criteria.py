@@ -1,6 +1,5 @@
 import os
 import unittest
-from dcpmessage.search import search_criteria
 from dcpmessage.search.search_criteria import SearchCriteria, DcpAddress, SearchCriteriaConstants
 
 

@@ -35,7 +35,6 @@ class TestSearchCriteria(unittest.TestCase):
             f.write('DRS_SINCE: 2022-01-01 00:00:00\n')
             f.write('DCP_ADDRESS: address1\n')
         criteria.parse_file(criteria_file)
-        print(criteria.to_string_proto(14))
         self.assertEqual(criteria.lrgs_since, '2022-01-01 00:00:00')
         os.remove(criteria_file)
 

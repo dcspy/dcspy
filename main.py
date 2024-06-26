@@ -3,7 +3,7 @@ import logging
 from datetime import datetime, timezone
 from logs import write_log
 from dcpmessage.ldds_message import LddsMessage
-from dcpmessage.basic_client_no_makefile import BasicClient
+from dcpmessage.basic_client import BasicClient
 from dcpmessage.security import Authenticator
 from dcpmessage.security import PasswordFileEntry
 from dcpmessage.utils.byte_util import get_c_string

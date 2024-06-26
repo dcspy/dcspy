@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import datetime, timezone
 from logs import write_log
 from dcpmessage.ldds_message import LddsMessage
@@ -9,6 +10,8 @@ from dcpmessage.utils.byte_util import get_c_string
 from dcpmessage.search.search_criteria import SearchCriteria
 from dcpmessage.exceptions.server_exceptions import ServerError
 
+logging.basicConfig(level=logging.DEBUG)
+
 
 def test_basic_client(username,
                       password,
@@ -17,7 +20,6 @@ def test_basic_client(username,
                       ):
     # TODO: how to set timeout
     client = BasicClient(server, 16003, 30)
-    client.set_debug_stream(True)  # Enable debug logging
 
     try:
         # requesting Authentication

@@ -1,5 +1,6 @@
 import socket
 import time
+from logs import write_debug, write_error
 
 
 class BasicClient:
@@ -8,29 +9,21 @@ class BasicClient:
         self.host = host
         self.timeout = timeout
         self.socket = None
-        self.debug = True  # Enable debugging by default
         self.last_connect_attempt = 0
 
     def __del__(self):
         self.disconnect()
 
-    def set_debug_stream(self, debug):
-        self.debug = debug
-
-    def log(self, message):
-        if self.debug:
-            print(message)
-
     def connect(self):
         try:
-            self.log(f"Attempting to connect to {self.host}:{self.port}")
+            write_debug(f"Attempting to connect to {self.host}:{self.port}")
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             if self.timeout is not None:
                 self.socket.settimeout(self.timeout)
             self.socket.connect((self.host, self.port))
             self.socket.setblocking(True)  # Set the socket to blocking mode
             self.last_connect_attempt = time.time()
-            self.log(f"Successfully connected to {self.host}:{self.port}")
+            write_debug(f"Successfully connected to {self.host}:{self.port}")
         except socket.timeout as ex:
             raise IOError(f"Connection to {self.host}:{self.port} timed out") from ex
         except socket.error as ex:
@@ -40,10 +33,9 @@ class BasicClient:
         try:
             if self.socket:
                 self.socket.close()
-                self.log("Closed socket")
+                write_debug("Closed socket")
         except IOError as ex:
-            if self.debug:
-                print(f"Error during disconnect: {ex}")
+            write_debug(f"Error during disconnect: {ex}")
         finally:
             self.socket = None
 
@@ -70,11 +62,11 @@ class BasicClient:
                 if not chunk:
                     break
                 buffer.extend(chunk)
-                self.log(f"Received chunk: {chunk}")
+                write_debug(f"Received chunk: {chunk}")
         except socket.timeout:
-            self.log("Socket timed out while receiving data.")
+            write_debug("Socket timed out while receiving data.")
         except Exception as e:
-            self.log(f"Error receiving data: {e}")
+            write_debug(f"Error receiving data: {e}")
         return bytes(buffer)
 
     def get_name(self):

@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, timezone
+from logs import write_log
 from dcpmessage.ldds_message import LddsMessage
 from dcpmessage.basic_client_no_makefile import BasicClient
 from dcpmessage.security import Authenticator
@@ -21,7 +22,7 @@ def test_basic_client(username,
     try:
         # requesting Authentication
         client.connect()
-        print("Connected to server.")
+        write_log("Connected to server.")
         authenticate_user(client, username, password)
 
         # TODO: look for error scenarios
@@ -37,10 +38,10 @@ def test_basic_client(username,
             dcp_message = request_dcp_message(client, msg_id)
             print(dcp_message)
     except Exception as e:
-        print(f"An error occurred: {e}")
+        write_log(f"An error occurred: {e}", "ERROR")
     finally:
         client.disconnect()
-        print("Disconnected from server.")
+        write_log("Disconnected from server.")
 
 
 def authenticate_user(client, user_name="user", password="pass", algo=Authenticator.ALGO_SHA):
@@ -71,7 +72,7 @@ def request_dcp_message(client, msg_id, msg_data=""):
     try:
         response = client.receive_data(1024 * 1024 * 1024)
     except Exception as e:
-        print(f"Error receiving data: {e}")
+        write_log(f"Error receiving data: {e}", "ERROR")
     return response
 
 
@@ -100,13 +101,13 @@ def send_search_crit(client, filename, data):
     for i in range(len(data)):
         msg.message_data[i + 50] = data[i]
 
-    print(f"Sending criteria message (filesize = {len(data)} bytes)")
+    write_log(f"Sending criteria message (filesize = {len(data)} bytes)")
     client.send_data(msg.get_bytes())
     try:
         response = client.receive_data(1024 * 1024 * 1024)
         print(response)
     except Exception as e:
-        print(f"Error receiving data: {e}")
+        write_log(f"Error receiving data: {e}", "ERROR")
 
 
 if __name__ == "__main__":

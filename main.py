@@ -53,7 +53,7 @@ def authenticate_user(client, user_name="user", password="pass", algo=Authentica
 
     res = request_dcp_message(client, msg_id, auth_str)
     res = get_c_string(res, 10)
-    print(f"C String: {res}")
+    write_log(f"C String: {res}")
     # '?' means that server refused the login.
     if len(res) > 0 and res[0] == '?':
         server_expn = ServerError(res)
@@ -68,9 +68,8 @@ def request_dcp_message(client, msg_id, msg_data=""):
     response = ""
     message = LddsMessage(message_id=msg_id, StrData=msg_data)
     bytes_to_send = message.get_bytes()
-    # print(f"Bytes to send: {bytes_to_send}")
     client.send_data(bytes_to_send)
-    # Attempt to read a response if expected
+
     try:
         response = client.receive_data(1024 * 1024 * 1024)
     except Exception as e:

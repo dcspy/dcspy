@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import datetime, timezone
-from logs import write_log
+from dcpmessage.logs import write_log
 from dcpmessage.ldds_message import LddsMessage
 from dcpmessage.basic_client import BasicClient
 from dcpmessage.security import Authenticator

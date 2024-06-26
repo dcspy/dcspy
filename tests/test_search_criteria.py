@@ -1,7 +1,7 @@
 import os
 import unittest
 from dcpmessage.search import search_criteria
-from dcpmessage.search.search_criteria import SearchCriteria, DcpAddress
+from dcpmessage.search.search_criteria import SearchCriteria, DcpAddress, SearchCriteriaConstants
 
 
 class TestSearchCriteria(unittest.TestCase):
@@ -20,7 +20,7 @@ class TestSearchCriteria(unittest.TestCase):
         self.assertEqual(criteria.dcp_names, [])
         self.assertEqual(criteria.explicit_dcp_address, [])
         self.assertIsNone(criteria.channels)
-        self.assertEqual(criteria.sources, [0] * search_criteria.MAX_SOURCES)
+        self.assertEqual(criteria.sources, [0] * SearchCriteriaConstants.max_sources)
         self.assertEqual(criteria.num_sources, 0)
         self.assertEqual(criteria.spacecraft, 'A')
         self.assertEqual(criteria.seq_start, -1)

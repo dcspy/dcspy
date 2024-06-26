@@ -1,7 +1,7 @@
 import logging
 
 
-def write_log(msg: str, level: str = "INFO", stacklevel: int = 2) -> None:
+def write_log(msg: str, level: str = "INFO", stack_level: int = 2) -> None:
     level = level.upper()
     assert level in ["INFO", "DEBUG", "ERROR"], "Invalid level for logging"
 
@@ -14,18 +14,18 @@ def write_log(msg: str, level: str = "INFO", stacklevel: int = 2) -> None:
 
     match level:
         case "INFO":
-            logger.info(msg, stacklevel=stacklevel)
+            logger.info(msg, stacklevel=stack_level)
         case "DEBUG":
-            logger.debug(msg, stacklevel=stacklevel)
+            logger.debug(msg, stacklevel=stack_level)
         case "ERROR":
-            logger.error(msg, stacklevel=stacklevel)
+            logger.error(msg, stacklevel=stack_level)
         case _:
-            logger.error("Invalid level for logging")
+            logger.error(f"{level} is invalid level for logging")
 
 
 def write_debug(msg: str):
-    write_log(msg, "DEBUG", stacklevel=3)
+    write_log(msg, "DEBUG", stack_level=3)
 
 
 def write_error(msg: str):
-    write_log(msg, "ERROR", stacklevel=3)
+    write_log(msg, "ERROR", stack_level=3)

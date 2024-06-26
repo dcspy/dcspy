@@ -35,12 +35,12 @@ class PasswordFileEntry:
         self.roles = roles_str.split(',') if roles_str.lower() != 'none' else []
         self.ShaPassword = byte_util.from_hex_string(passwd_str)
         if prop_str:
-            self.properties = properties_util.string2props(prop_str)
+            self.properties = properties_util.string_to_properties(prop_str)
 
     def __str__(self):
         roles_str = ','.join(self.roles) if self.roles else 'none'
         password_str = byte_util.to_hex_string(self.ShaPassword) if self.ShaPassword else '0' * 40
-        prop_str = properties_util.props2string(self.properties)
+        prop_str = properties_util.properties_to_string(self.properties)
         return f'{self.username}:{roles_str}:{password_str}:{prop_str}'
 
     def clone(self):

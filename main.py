@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import datetime, timezone
-from src.logs import write_log
+from src.logs import write_log, write_debug, write_error
 from src.ldds_message import LddsMessage
 from src.basic_client import BasicClient
 from src.security import Authenticator
@@ -10,17 +10,21 @@ from src.utils.byte_util import get_c_string
 from src.search.search_criteria import SearchCriteria
 from src.exceptions.server_exceptions import ServerError
 
-logging.basicConfig(level=logging.DEBUG)
-
 
 def test_basic_client(username,
                       password,
                       search_criteria,
                       server,
+                      debug: bool = True
                       ):
-    # TODO: how to set timeout
-    client = BasicClient(server)
+    if debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
 
+    # TODO: how to set timeout
+
+    client = BasicClient(server)
     try:
         # requesting Authentication
         client.connect()
@@ -61,7 +65,7 @@ def authenticate_user(client, user_name="user", password="pass", algo=Authentica
 
     res = request_dcp_message(client, msg_id, auth_str)
     res = get_c_string(res, 10)
-    write_log(f"C String: {res}")
+    write_debug(f"C String: {res}")
     # '?' means that server refused the login.
     if len(res) > 0 and res[0] == '?':
         server_expn = ServerError(res)
@@ -111,13 +115,13 @@ def send_search_crit(client, filename, data):
     for i in range(len(data)):
         msg.message_data[i + 50] = data[i]
 
-    write_log(f"Sending criteria message (filesize = {len(data)} bytes)")
+    write_debug(f"Sending criteria message (filesize = {len(data)} bytes)")
     client.send_data(msg.get_bytes())
     try:
         response = client.receive_data(1024 * 1024 * 1024)
         print(response)
     except Exception as e:
-        write_log(f"Error receiving data: {e}", "ERROR")
+        write_error(f"Error receiving data: {e}")
 
 
 if __name__ == "__main__":
@@ -127,4 +131,5 @@ if __name__ == "__main__":
     test_basic_client(username=credentials["username"],
                       password=credentials["password"],
                       search_criteria="./test_search_criteria.sc",
-                      server="cdadata.wcda.noaa.gov")
+                      server="cdadata.wcda.noaa.gov",
+                      debug=True)

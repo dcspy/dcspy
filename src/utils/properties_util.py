@@ -1,4 +1,4 @@
-from dcpmessage.logs import write_warning
+from src.logs import write_warning
 
 possible_delimiters = ",;|#+!~^&*"
 possible_assigns = "=:><`()[]"

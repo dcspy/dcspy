@@ -1,5 +1,5 @@
 import hashlib
-from dcpmessage.utils.byte_util import to_hex_string, put_int4_big_endian
+from src.utils.byte_util import to_hex_string, put_int4_big_endian
 from .password_file_entry import PasswordFileEntry
 
 

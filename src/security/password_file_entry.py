@@ -1,5 +1,5 @@
 import hashlib
-from dcpmessage.utils import byte_util, properties_util
+from src.utils import byte_util, properties_util
 
 
 class AuthException(Exception):

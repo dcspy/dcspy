@@ -1,6 +1,6 @@
 import unittest
-from dcpmessage.security import PasswordFileEntry
-from dcpmessage.security import Authenticator
+from src.security import PasswordFileEntry
+from src.security import Authenticator
 
 
 class TestCore(unittest.TestCase):

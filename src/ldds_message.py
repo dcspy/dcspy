@@ -19,7 +19,9 @@ class LddsMessage:
     ValidHdrLength = 10
     ValidSync = b"FAF0"
     ValidMaxDataLength = 99000
-    ValidIds = "abcdefghijklmnopqrstu"
+    ValidIds = {"a", "b", "c", "d", "e", "f", "g",
+                "h", "i", "j", "k", "l", "m", "n",
+                "o", "p", "q", "r", "s", "t", "u"}
     IdHello = 'a'
     IdGoodbye = 'b'
     IdStatus = 'c'

@@ -1,5 +1,5 @@
 import re
-from dcpmessage.constants.lrgs_error_codes import LrgsErrorCode
+from src.constants.lrgs_error_codes import LrgsErrorCode
 
 class ServerError(Exception):
     def __init__(self, msg, Derrno=0, Errno=0):

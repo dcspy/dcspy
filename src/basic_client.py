@@ -1,6 +1,6 @@
 import socket
 import time
-from dcpmessage.logs import write_debug
+from src.logs import write_debug
 
 
 class BasicClient:

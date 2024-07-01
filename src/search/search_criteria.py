@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from dcpmessage.constants.dcp_msg_flag import DcpMessageFlag
+from src.constants.dcp_msg_flag import DcpMessageFlag
 
 
 @dataclass
@@ -39,6 +39,10 @@ class SearchCriteria:
     defaultName = "search_criteria"
 
     def __init__(self, file: str = None):
+        """
+
+        :param file:
+        """
         self.lrgs_since = None
         self.lrgs_until = None
         self.explicit_dcp_address = []
@@ -64,6 +68,11 @@ class SearchCriteria:
         self.explicit_dcp_address.append(dcp_address)
 
     def parse_file(self, file: str) -> bool:
+        """
+
+        :param file:
+        :return:
+        """
         self.clear()
         with open(file, 'r') as file_data:
             lines = file_data.readlines()

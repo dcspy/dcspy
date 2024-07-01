@@ -1,14 +1,14 @@
 import json
 import logging
 from datetime import datetime, timezone
-from dcpmessage.logs import write_log
-from dcpmessage.ldds_message import LddsMessage
-from dcpmessage.basic_client import BasicClient
-from dcpmessage.security import Authenticator
-from dcpmessage.security import PasswordFileEntry
-from dcpmessage.utils.byte_util import get_c_string
-from dcpmessage.search.search_criteria import SearchCriteria
-from dcpmessage.exceptions.server_exceptions import ServerError
+from src.logs import write_log
+from src.ldds_message import LddsMessage
+from src.basic_client import BasicClient
+from src.security import Authenticator
+from src.security import PasswordFileEntry
+from src.utils.byte_util import get_c_string
+from src.search.search_criteria import SearchCriteria
+from src.exceptions.server_exceptions import ServerError
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -47,6 +47,14 @@ def test_basic_client(username,
 
 
 def authenticate_user(client, user_name="user", password="pass", algo=Authenticator.ALGO_SHA):
+    """
+    
+    :param client:
+    :param user_name:
+    :param password:
+    :param algo:
+    :return:
+    """
     msg_id = LddsMessage.IdAuthHello
     # Auth request algo (sha or sha-256) to be used based on request
     auth_str = prepare_auth_string(user_name, password, algo)
@@ -79,12 +87,13 @@ def request_dcp_message(client, msg_id, msg_data=""):
 
 def prepare_auth_string(user_name="user", password="pass", algo=Authenticator.ALGO_SHA):
     now = datetime.now(timezone.utc)
-    timet = int(now.timestamp())  # Convert to Unix timestamp
-    tstr = now.strftime("%y%j%H%M%S")
+    time_t = int(now.timestamp())  # Convert to Unix timestamp
+    time_str = now.strftime("%y%j%H%M%S")
     sha_password = PasswordFileEntry.build_sha_password(user_name, password)
     pfe = PasswordFileEntry(username=user_name, ShaPassword=sha_password)
-    authenticator = Authenticator(timet, pfe, algo)
-    auth_string = pfe.get_username() + " " + tstr + " " + authenticator.string + " " + str(14)  # Prepare the string
+    authenticator = Authenticator(time_t, pfe, algo)
+    # Prepare the string
+    auth_string = pfe.get_username() + " " + time_str + " " + authenticator.string + " " + str(14)
     return auth_string
 
 

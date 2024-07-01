@@ -50,7 +50,11 @@ def test_basic_client(username,
         write_log("Disconnected from server.")
 
 
-def authenticate_user(client, user_name="user", password="pass", algo=Authenticator.ALGO_SHA):
+def authenticate_user(client,
+                      user_name="user",
+                      password="pass",
+                      algo=Authenticator.ALGO_SHA,
+                      ):
     """
     
     :param client:
@@ -64,11 +68,11 @@ def authenticate_user(client, user_name="user", password="pass", algo=Authentica
     auth_str = prepare_auth_string(user_name, password, algo)
 
     res = request_dcp_message(client, msg_id, auth_str)
-    res = get_c_string(res, 10)
-    write_debug(f"C String: {res}")
+    c_string = get_c_string(res, 10)
+    write_debug(f"C String: {c_string}")
     # '?' means that server refused the login.
-    if len(res) > 0 and res[0] == '?':
-        server_expn = ServerError(res)
+    if len(c_string) > 0 and c_string.startswith("?"):
+        server_expn = ServerError(c_string)
         if server_expn.Derrno == 55 and algo == Authenticator.ALGO_SHA:
             auth_str = prepare_auth_string(user_name, password, Authenticator.ALGO_SHA256)
             request_dcp_message(client, msg_id, auth_str)
@@ -76,14 +80,24 @@ def authenticate_user(client, user_name="user", password="pass", algo=Authentica
             raise Exception(f"Could not authenticate for user:{user_name}\n{server_expn}")
 
 
-def request_dcp_message(client, msg_id, msg_data=""):
-    response = ""
+def request_dcp_message(client: BasicClient,
+                        msg_id,
+                        msg_data: str = "",
+                        ) -> bytes:
+    """
+
+    :param client:
+    :param msg_id:
+    :param msg_data:
+    :return:
+    """
+    response = b""
     message = LddsMessage(message_id=msg_id, StrData=msg_data)
     bytes_to_send = message.get_bytes()
     client.send_data(bytes_to_send)
 
     try:
-        response = client.receive_data(1024 * 1024 * 1024)
+        response = client.receive_data()
     except Exception as e:
         write_log(f"Error receiving data: {e}", "ERROR")
     return response
@@ -101,12 +115,22 @@ def prepare_auth_string(user_name="user", password="pass", algo=Authenticator.AL
     return auth_string
 
 
-def send_search_crit(client, filename, data):
+def send_search_crit(client: BasicClient,
+                     filename,
+                     data,
+                     ):
+    """
+
+    :param client:
+    :param filename:
+    :param data:
+    :return:
+    """
     msg = LddsMessage(message_id=LddsMessage.IdCriteria, StrData="")
     msg.message_length = len(data) + 50
     msg.message_data = bytearray(msg.message_length)
 
-    # Create the 'header' portion containing the searchcrit filename (First 40 bytes is filename)
+    # Create the 'header' portion containing the search criteria filename (First 40 bytes is filename)
     for i in range(min(40, len(filename))):
         msg.message_data[i] = ord(filename[i])
     msg.message_data[i] = 0

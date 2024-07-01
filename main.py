@@ -19,7 +19,7 @@ def test_basic_client(username,
                       server,
                       ):
     # TODO: how to set timeout
-    client = BasicClient(server, 16003, 30)
+    client = BasicClient(server)
 
     try:
         # requesting Authentication

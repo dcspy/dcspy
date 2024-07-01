@@ -4,7 +4,15 @@ from src.logs import write_debug
 
 
 class BasicClient:
-    def __init__(self, host, port, timeout=None):
+    def __init__(self, host: str,
+                 port: int = 16003,
+                 timeout: int = 30):
+        """
+
+        :param host:
+        :param port:
+        :param timeout:
+        """
         self.port = port
         self.host = host
         self.timeout = timeout

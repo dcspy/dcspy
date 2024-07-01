@@ -19,9 +19,6 @@ class BasicClient:
         self.socket = None
         self.last_connect_attempt = 0
 
-    def __del__(self):
-        self.disconnect()
-
     def connect(self):
         try:
             write_debug(f"Attempting to connect to {self.host}:{self.port}")
@@ -52,7 +49,7 @@ class BasicClient:
             raise IOError("BasicClient socket closed.")
         self.socket.sendall(data)
 
-    def receive_data(self, buffer_size=1024):
+    def receive_data(self, buffer_size: int = 1024):
         """Receive data from the socket."""
         if self.socket is None:
             raise IOError("BasicClient socket closed.")
@@ -60,7 +57,11 @@ class BasicClient:
         return data
 
     def receive_all_data(self):
-        """Receive all data from the socket until the end of the stream."""
+        """
+        Receive all data from the socket until the end of the stream.
+
+        :return:
+        """
         if self.socket is None:
             raise IOError("BasicClient socket closed.")
         buffer = bytearray()
@@ -77,26 +78,6 @@ class BasicClient:
             write_debug(f"Error receiving data: {e}")
         return bytes(buffer)
 
-    def get_name(self):
+    @property
+    def name(self):
         return f"{self.host}:{self.port}"
-
-    def is_connected(self):
-        return self.socket is not None
-
-    def get_port(self):
-        return self.port
-
-    def set_port(self, port):
-        self.port = port
-
-    def get_host(self):
-        return self.host
-
-    def set_host(self, host):
-        self.host = host
-
-    def get_socket(self):
-        return self.socket
-
-    def get_last_connect_attempt(self):
-        return self.last_connect_attempt

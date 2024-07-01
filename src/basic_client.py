@@ -49,8 +49,14 @@ class BasicClient:
             raise IOError("BasicClient socket closed.")
         self.socket.sendall(data)
 
-    def receive_data(self, buffer_size: int = 1024):
-        """Receive data from the socket."""
+    def receive_data(self, buffer_size: int = 1024) -> bytes:
+        """
+        Receive data from the socket.
+
+        :param buffer_size:
+        :return:
+        """
+
         if self.socket is None:
             raise IOError("BasicClient socket closed.")
         data = self.socket.recv(buffer_size)

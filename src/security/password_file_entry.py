@@ -6,52 +6,80 @@ class AuthException(Exception):
     pass
 
 
-class PasswordFileEntry:
-    digest_algo = "sha1"
+class Hash:
+    def __init__(self, algorithm):
+        self.algorithm = algorithm
 
-    def __init__(self, username=None, roles=None, ShaPassword=None, password=None):
-        self.username = username
+    def new(self):
+        return hashlib.new(self.algorithm)
+
+    def __eq__(self, other):
+        return self.algorithm == other.algorithm
+
+
+class Sha1Hash(Hash):
+    def __init__(self):
+        super().__init__("sha1")
+
+
+class Sha256Hash(Hash):
+    def __init__(self):
+        super().__init__("sha256")
+
+
+class PasswordFileEntry:
+
+    def __init__(self,
+                 username: str = None,
+                 password: str = None,
+                 roles: list[str] = None,
+                 sha_password: bytes = None,
+                 hash_: Hash = Sha1Hash()
+                 ):
+        self.__username = username
+        self.hash = hash_
         self.roles = roles if roles else []
-        self.ShaPassword = ShaPassword
+        self.__sha_password = sha_password
         self.properties = {}
         self.owner = None
         self.changed = False
         self.local = False
         self.last_modified = None
 
-        if username and not ShaPassword and password:
-            self.set_password(password)
+        if self.username is not None and password is not None and sha_password is None:
+            self.set_sha_password(password, True)
 
     def parse_line(self, file_line):
         parts = file_line.split(':')
         if len(parts) < 3:
             raise AuthException("Improperly formatted line.")
 
-        self.username = parts[0]
+        self.__username = parts[0]
         roles_str = parts[1]
         passwd_str = parts[2]
         prop_str = parts[3] if len(parts) > 3 else None
 
         self.roles = roles_str.split(',') if roles_str.lower() != 'none' else []
-        self.ShaPassword = byte_util.from_hex_string(passwd_str)
+        self.__sha_password = byte_util.from_hex_string(passwd_str)
         if prop_str:
             self.properties = properties_util.string_to_properties(prop_str)
 
     def __str__(self):
         roles_str = ','.join(self.roles) if self.roles else 'none'
-        password_str = byte_util.to_hex_string(self.ShaPassword) if self.ShaPassword else '0' * 40
+        password_str = byte_util.to_hex_string(self.__sha_password) if self.__sha_password else '0' * 40
         prop_str = properties_util.properties_to_string(self.properties)
-        return f'{self.username}:{roles_str}:{password_str}:{prop_str}'
+        return f'{self.__username}:{roles_str}:{password_str}:{prop_str}'
 
     def clone(self):
         return PasswordFileEntry(
-            username=self.username,
+            username=self.__username,
             roles=self.roles[:],
-            ShaPassword=self.ShaPassword[:]
+            sha_password=self.__sha_password[:]
         )
 
-    def get_username(self):
-        return self.username
+    @property
+    def username(self):
+        return self.__username
 
     def get_roles(self):
         return self.roles
@@ -59,12 +87,9 @@ class PasswordFileEntry:
     def is_role_assigned(self, role):
         return role.lower() in [r.lower() for r in self.roles]
 
-    def matches_password(self, passwd):
-        test = self.build_sha_password(self.username, passwd, self.digest_algo)
-        return self.ShaPassword == test
-
-    def get_sha_password(self):
-        return self.ShaPassword
+    @property
+    def sha_password(self):
+        return self.__sha_password
 
     def assign_role(self, role):
         self.roles.append(role)
@@ -76,11 +101,9 @@ class PasswordFileEntry:
     def remove_all_roles(self):
         self.roles = []
 
-    def set_password(self, passwd):
-        self.ShaPassword = self.build_sha_password(self.username, passwd, self.digest_algo)
-
-    def set_sha_password(self, pw):
-        self.ShaPassword = pw
+    def set_sha_password(self, pw: str, build: bool = False):
+        sha_pw = self.__build_sha_password(self.__username, pw) if build else pw
+        self.__sha_password = sha_pw
 
     def set_property(self, name, value):
         self.properties[name] = value
@@ -126,11 +149,13 @@ class PasswordFileEntry:
         self.last_modified = last_modified
 
     def is_password_assigned(self):
-        return self.ShaPassword and any(byte != 0 for byte in self.ShaPassword)
+        return self.__sha_password and any(byte != 0 for byte in self.__sha_password)
 
-    @staticmethod
-    def build_sha_password(username, password, digest_algo=digest_algo):
-        md = hashlib.new(digest_algo)
+    def __build_sha_password(self,
+                             username: str,
+                             password: str,
+                             ) -> bytes:
+        md = self.hash.new()
         md.update(username.encode())
         md.update(password.encode())
         md.update(username.encode())

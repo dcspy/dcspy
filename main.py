@@ -5,7 +5,7 @@ from src.logs import write_log, write_debug, write_error
 from src.ldds_message import LddsMessage
 from src.basic_client import BasicClient
 from src.security import Authenticator
-from src.security import PasswordFileEntry
+from src.security import PasswordFileEntry, Sha1Hash, Sha256Hash, Hash
 from src.utils.byte_util import get_c_string
 from src.search.search_criteria import SearchCriteria
 from src.exceptions.server_exceptions import ServerError
@@ -44,7 +44,7 @@ def test_basic_client(username,
             dcp_message = request_dcp_message(client, msg_id)
             print(dcp_message)
     except Exception as e:
-        write_log(f"An error occurred: {e}", "ERROR")
+        write_error(f"An error occurred: {e}")
     finally:
         client.disconnect()
         write_log("Disconnected from server.")
@@ -53,7 +53,7 @@ def test_basic_client(username,
 def authenticate_user(client,
                       user_name="user",
                       password="pass",
-                      algo=Authenticator.ALGO_SHA,
+                      algo=Sha1Hash(),
                       ):
     """
     
@@ -74,8 +74,8 @@ def authenticate_user(client,
     if len(c_string) > 0 and c_string.startswith("?"):
         server_expn = ServerError(c_string)
         write_debug(str(server_expn))
-        if server_expn.derr_no == 55 and algo == Authenticator.ALGO_SHA:
-            auth_str = prepare_auth_string(user_name, password, Authenticator.ALGO_SHA256)
+        if server_expn.derr_no == 55 and algo == Sha1Hash():
+            auth_str = prepare_auth_string(user_name, password, Sha256Hash())
             request_dcp_message(client, msg_id, auth_str)
         else:
             raise Exception(f"Could not authenticate for user:{user_name}\n{server_expn}")
@@ -104,15 +104,15 @@ def request_dcp_message(client: BasicClient,
     return response
 
 
-def prepare_auth_string(user_name="user", password="pass", algo=Authenticator.ALGO_SHA):
+def prepare_auth_string(user_name, password, algo):
     now = datetime.now(timezone.utc)
     time_t = int(now.timestamp())  # Convert to Unix timestamp
     time_str = now.strftime("%y%j%H%M%S")
-    sha_password = PasswordFileEntry.build_sha_password(user_name, password)
-    pfe = PasswordFileEntry(username=user_name, ShaPassword=sha_password)
+    # sha_password = PasswordFileEntry.__build_sha_password(user_name, password)
+    pfe = PasswordFileEntry(username=user_name, password=password)
     authenticator = Authenticator(time_t, pfe, algo)
     # Prepare the string
-    auth_string = pfe.get_username() + " " + time_str + " " + authenticator.string + " " + str(14)
+    auth_string = pfe.username + " " + time_str + " " + authenticator.to_string + " " + str(14)
     return auth_string
 
 

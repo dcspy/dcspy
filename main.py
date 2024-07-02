@@ -73,7 +73,8 @@ def authenticate_user(client,
     # '?' means that server refused the login.
     if len(c_string) > 0 and c_string.startswith("?"):
         server_expn = ServerError(c_string)
-        if server_expn.Derrno == 55 and algo == Authenticator.ALGO_SHA:
+        write_debug(str(server_expn))
+        if server_expn.derr_no == 55 and algo == Authenticator.ALGO_SHA:
             auth_str = prepare_auth_string(user_name, password, Authenticator.ALGO_SHA256)
             request_dcp_message(client, msg_id, auth_str)
         else:

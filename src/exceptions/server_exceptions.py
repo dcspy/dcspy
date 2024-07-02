@@ -1,53 +1,45 @@
 import re
-from src.constants.lrgs_error_codes import LrgsErrorCode
+from src.constants.lrgs_error_codes import LrgsErrorCode, LrgsErrorCodeEnum
+
 
 class ServerError(Exception):
-    def __init__(self, msg, Derrno=0, Errno=0):
-        super().__init__(msg)
-        self.Derrno = Derrno
-        self.Errno = Errno
-        self.msg = msg
-        if msg:
-            self.set(msg)
+    def __init__(self, message, derr_no=0, err_no=0):
+        super().__init__(message)
+        self.derr_no = derr_no
+        self.err_no = err_no
+        self.message = message
+        if message:
+            self.set(message)
 
-    def set(self, s):
-        self.Derrno = 0
-        self.Errno = 0
+    def set(self, s: str):
+        self.derr_no = 0
+        self.err_no = 0
 
         # Truncate error message at the first null byte
         null_idx = s.find('\0')
         if null_idx != -1:
             s = s[:null_idx]
-        self.msg = s
+        self.message = s
 
-        if s[0] != '?':
+        if not s.startswith('?'):
             return
 
         pattern = r'\?(\d+)\s*,\s*(\d+)\s*,\s*(.*)'
         match = re.match(pattern, s)
         if match:
-            self.Derrno = int(match.group(1))
-            self.Errno = int(match.group(2))
-            self.msg = match.group(3).strip()
+            self.derr_no = int(match.group(1))
+            self.err_no = int(match.group(2))
+            self.message = match.group(3).strip()
 
     def __str__(self):
-        r = f"Server Error: {self.msg}"
-        if self.Derrno != 0:
-            r += f" ({LrgsErrorCode.code2string(self.Derrno)}-{self.Derrno}"
-            if self.Errno != 0:
-                r += f", Errno={self.Errno}"
-            r += f") {LrgsErrorCode.code2message(self.Derrno)}"
+        r = f"Server Error: {self.message}"
+        if self.derr_no != 0:
+            r += f" ({LrgsErrorCode.code2string(self.derr_no)}-{self.derr_no}"
+            if self.err_no != 0:
+                r += f", Errno={self.err_no}"
+            r += f") {LrgsErrorCode.code2message(self.derr_no)}"
         return r
 
-
-# Example usage (comment out or remove the main equivalent when deploying):
-# if __name__ == '__main__':
-#     se = ServerError("?123,456,Big Problem, Yeah!")
-#     print(f"se='{se}'")
-#     se = ServerError("? 123	,		456 ,Big Problem, Yeah!")
-#     print(f"se='{se}'")
-#     se = ServerError("? 123	,		456 ,Big Problem -- Yeah!")
-#     print(f"se='{se}'")
 
 class TextUtil:
     @staticmethod

@@ -50,10 +50,10 @@ def test_basic_client(username,
         write_log("Disconnected from server.")
 
 
-def authenticate_user(client,
-                      user_name="user",
-                      password="pass",
-                      algo=Sha1Hash(),
+def authenticate_user(client: BasicClient,
+                      user_name: str = "user",
+                      password: str = "pass",
+                      algo: Hash = Sha1Hash(),
                       ):
     """
     

@@ -1,5 +1,5 @@
 import re
-from src.constants.lrgs_error_codes import LrgsErrorCode, LrgsErrorCodeEnum
+from src.constants.lrgs_error_codes import LrgsErrorCode
 
 
 class ServerError(Exception):
@@ -34,10 +34,10 @@ class ServerError(Exception):
     def __str__(self):
         r = f"Server Error: {self.message}"
         if self.derr_no != 0:
-            r += f" ({LrgsErrorCode.code2string(self.derr_no)}-{self.derr_no}"
+            r += f" ({LrgsErrorCode(self.derr_no).name}-{self.derr_no}"
             if self.err_no != 0:
                 r += f", Errno={self.err_no}"
-            r += f") {LrgsErrorCode.code2message(self.derr_no)}"
+            r += f") {LrgsErrorCode(self.derr_no).description}"
         return r
 
 

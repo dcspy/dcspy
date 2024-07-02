@@ -34,10 +34,10 @@ class PasswordFileEntry:
                  password: str = None,
                  roles: list[str] = None,
                  sha_password: bytes = None,
-                 hash_: Hash = Sha1Hash()
+                 hash_algo: Hash = Sha1Hash()
                  ):
         self.__username = username
-        self.hash = hash_
+        self.hash = hash_algo
         self.roles = roles if roles else []
         self.__sha_password = sha_password
         self.properties = {}

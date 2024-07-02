@@ -12,7 +12,7 @@ class TestCore(unittest.TestCase):
     def test_basic_authenticator_string_sha1(self):
         username = "test_user"
         password = "test_pass"
-        pfe = PasswordFileEntry(username=username, password=password, hash_=Sha1Hash())
+        pfe = PasswordFileEntry(username=username, password=password, hash_algo=Sha1Hash())
         timet = 1650000000  # Example timestamp
         auth_str = Authenticator(timet, pfe)
 
@@ -22,7 +22,7 @@ class TestCore(unittest.TestCase):
     def test_basic_authenticator_string_sha256(self):
         username = "test_user"
         password = "test_pass"
-        pfe = PasswordFileEntry(username=username, password=password, hash_=Sha256Hash())
+        pfe = PasswordFileEntry(username=username, password=password, hash_algo=Sha256Hash())
         timet = 1650000000  # Example timestamp
         auth_str = Authenticator(timet, pfe, Sha256Hash())
 
@@ -33,7 +33,7 @@ class TestCore(unittest.TestCase):
 
         username = "test_user"
         password = "test_pass"
-        pfe = PasswordFileEntry(username=username, password=password, hash_=Sha1Hash())
+        pfe = PasswordFileEntry(username=username, password=password, hash_algo=Sha1Hash())
         timet = 1650000000  # Example timestamp
 
         try:

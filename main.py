@@ -11,10 +11,12 @@ from src.search.search_criteria import SearchCriteria
 from src.exceptions.server_exceptions import ServerError
 
 
-def test_basic_client(username,
-                      password,
-                      search_criteria,
-                      server,
+def test_basic_client(username: str,
+                      password: str,
+                      search_criteria: str,
+                      host: str,
+                      port: int = None,
+                      timeout: int = None,
                       debug: bool = True
                       ):
     if debug:
@@ -23,8 +25,9 @@ def test_basic_client(username,
         logging.basicConfig(level=logging.INFO)
 
     # TODO: how to set timeout
-
-    client = BasicClient(server)
+    port = port if port is not None else 16003
+    timeout = timeout if timeout is not None else 30
+    client = BasicClient(host=host, port=port, timeout=timeout)
     try:
         # requesting Authentication
         client.connect()
@@ -112,7 +115,10 @@ def request_dcp_message(client: BasicClient,
     return response
 
 
-def prepare_auth_string(user_name, password, algo):
+def prepare_auth_string(user_name: str,
+                        password: str,
+                        algo: Hash,
+                        ):
     now = datetime.now(timezone.utc)
     time_t = int(now.timestamp())  # Convert to Unix timestamp
     time_str = now.strftime("%y%j%H%M%S")
@@ -125,8 +131,8 @@ def prepare_auth_string(user_name, password, algo):
 
 
 def send_search_crit(client: BasicClient,
-                     filename,
-                     data,
+                     filename: str,
+                     data: bytes,
                      ):
     """
 
@@ -164,5 +170,5 @@ if __name__ == "__main__":
     test_basic_client(username=credentials["username"],
                       password=credentials["password"],
                       search_criteria="./test_search_criteria.sc",
-                      server="cdadata.wcda.noaa.gov",
+                      host="cdadata.wcda.noaa.gov",
                       debug=True)

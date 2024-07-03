@@ -39,9 +39,13 @@ def test_basic_client(username,
 
         # TODO: message request iterations
         # requesting Dcp Messages
-        for _ in range(2):
+        while True:
             msg_id = LddsMessage.IdDcpBlock
             dcp_message = request_dcp_message(client, msg_id)
+            c_string = get_c_string(dcp_message, 10)
+            if c_string.startswith("?35"):
+                write_log(c_string)
+                break
             print(dcp_message)
     except Exception as e:
         write_error(f"An error occurred: {e}")
@@ -74,7 +78,7 @@ def authenticate_user(client: BasicClient,
     if len(c_string) > 0 and c_string.startswith("?"):
         server_expn = ServerError(c_string)
         write_debug(str(server_expn))
-        if server_expn.derr_no == 55 and algo == Sha1Hash():
+        if server_expn.derr_no == 55 and isinstance(algo, Sha1Hash):
             auth_str = prepare_auth_string(user_name, password, Sha256Hash())
             request_dcp_message(client, msg_id, auth_str)
         else:
@@ -143,7 +147,7 @@ def send_search_crit(client: BasicClient,
     write_debug(f"Sending criteria message (filesize = {len(data)} bytes)")
     client.send_data(msg.get_bytes())
     try:
-        response = client.receive_data(1024 * 1024 * 1024)
+        response = client.receive_data()
         print(response)
     except Exception as e:
         write_error(f"Error receiving data: {e}")

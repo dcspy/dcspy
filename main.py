@@ -42,6 +42,7 @@ def test_basic_client(username: str,
 
         # TODO: message request iterations
         # requesting Dcp Messages
+        dcp_messages = bytearray()
         while True:
             msg_id = LddsMessage.IdDcpBlock
             dcp_message = request_dcp_message(client, msg_id)
@@ -49,11 +50,8 @@ def test_basic_client(username: str,
             if c_string.startswith("?35"):
                 write_log(c_string)
                 break
-
-            if not dcp_message.decode().startswith("FAF0"):
-                write_log(f"Something happened - {dcp_message}")
-                break
-            print(dcp_message)
+            dcp_messages += dcp_message
+        print(dcp_messages)
     except Exception as e:
         write_error(f"An error occurred: {e}")
     finally:
@@ -111,7 +109,7 @@ def request_dcp_message(client: BasicClient,
     try:
         response = client.receive_data()
     except Exception as e:
-        write_log(f"Error receiving data: {e}", "ERROR")
+        write_error(f"Error receiving data: {e}")
     return response
 
 

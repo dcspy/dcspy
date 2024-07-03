@@ -77,16 +77,22 @@ class LddsMessage:
                 if self.message_length > 0 else None
 
     def get_bytes(self):
+        # Create a formatted string for the message length
+        length_str = f"{self.message_length:05d}"
+
+        # Initialize the byte array with the header
         ret = bytearray(self.ValidHdrLength + self.message_length)
+
+        # Set the sync bytes
         ret[:4] = self.ValidSync
+
+        # Set the message ID
         ret[4] = ord(self.message_id)
 
-        ret[5] = 48 + self.message_length // 10000
-        ret[6] = 48 + (self.message_length % 10000) // 1000
-        ret[7] = 48 + (self.message_length % 1000) // 100
-        ret[8] = 48 + (self.message_length % 100) // 10
-        ret[9] = 48 + (self.message_length % 10)
+        # Set the message length in the header
+        ret[5:10] = length_str.encode()
 
+        # Copy the message data if it exists
         if self.message_length > 0 and self.message_data is not None:
             ret[10:10 + self.message_length] = self.message_data
 

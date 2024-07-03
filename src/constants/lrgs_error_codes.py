@@ -68,12 +68,11 @@ class LrgsErrorCode(Enum):
 
     # ignore the first param since it's already set by __new__
     def __init__(self, _: str, description: str = None):
-        self._description_ = description
+        self.__description = description
 
     def __str__(self):
         return self.value
 
-    # this makes sure that the description is read-only
     @property
     def description(self):
-        return self._description_
+        return self.__description

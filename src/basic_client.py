@@ -1,12 +1,14 @@
 import socket
 import time
+from typing import Union
 from src.logs import write_debug
 
 
 class BasicClient:
-    def __init__(self, host: str,
+    def __init__(self,
+                 host: str,
                  port: int,
-                 timeout: int):
+                 timeout: Union[float, int]):
         """
 
         :param host:

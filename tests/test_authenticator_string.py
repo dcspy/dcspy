@@ -5,7 +5,7 @@ from src.security import Authenticator
 
 class InvalidHashClass(Hash):
     def __init__(self):
-        super().__init__("INVALID_ALGO")
+        super().__init__("sha384")
 
 
 class TestCore(unittest.TestCase):
@@ -38,6 +38,5 @@ class TestCore(unittest.TestCase):
 
         try:
             auth_str = Authenticator(timet, pfe, InvalidHashClass()).to_string
-            assert False, "Expected NoSuchAlgorithmException but got no exception"
-        except ValueError as e:
-            assert str(e) == "unsupported hash type INVALID_ALGO"
+        except AssertionError as e:
+            assert str(e) == "sha384 is not a supported hash algorithm"

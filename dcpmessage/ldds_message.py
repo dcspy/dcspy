@@ -1,18 +1,9 @@
+from dcpmessage.utils.array_utils import get_field, resize
+
+
 class ProtocolError(Exception):
     """Custom exception for protocol errors."""
     pass
-
-
-class ArrayUtil:
-    @staticmethod
-    def get_field(byte_array, start, length):
-        """Get a specific field from a byte array."""
-        return byte_array[start:start + length]
-
-    @staticmethod
-    def resize(byte_array, new_length):
-        """Resize a byte array to a new length."""
-        return byte_array[:new_length] + b'\0' * (new_length - len(byte_array))
 
 
 class LddsMessage:
@@ -47,7 +38,7 @@ class LddsMessage:
             if len(hdr) < self.ValidHdrLength:
                 raise ProtocolError(
                     f"Invalid LDDS message header - length={len(hdr)}")
-            sync = bytes(ArrayUtil.get_field(hdr, 0, 4)).decode()
+            sync = bytes(get_field(hdr, 0, 4)).decode()
 
             if sync != self.ValidSync.decode():
                 raise ProtocolError(
@@ -58,7 +49,7 @@ class LddsMessage:
                 raise ProtocolError(
                     f"Invalid LDDS message header - ID = '{self.message_id}'")
 
-            lenbytes = ArrayUtil.get_field(hdr, 5, 5)
+            lenbytes = get_field(hdr, 5, 5)
             for i in range(5):
                 if lenbytes[i] == ord(' '):
                     lenbytes[i] = ord('0')
@@ -71,7 +62,7 @@ class LddsMessage:
         elif message_id is not None and StrData is not None:
             self.message_id = message_id
             self.message_length = len(StrData) if StrData else 0
-            self.message_data = ArrayUtil.resize(StrData.encode(), self.message_length) \
+            self.message_data = resize(StrData.encode(), self.message_length) \
                 if self.message_length > 0 else None
 
     def get_bytes(self):
@@ -89,3 +80,10 @@ class LddsMessage:
             ret[10:10 + self.message_length] = self.message_data
 
         return bytes(ret)
+
+    def __str__(self):
+        return (
+            f"LddsMessage(message_id='{self.message_id}', "
+            f"message_length={self.message_length}, "
+            f"message_data={self.message_data.decode('utf-8', errors='replace') if self.message_data else None})"
+        )

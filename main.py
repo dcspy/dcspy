@@ -46,6 +46,10 @@ def test_basic_client(username,
             if c_string.startswith("?35"):
                 write_log(c_string)
                 break
+
+            if not dcp_message.decode().startswith("FAF0"):
+                write_log(f"Something happened - {dcp_message}")
+                break
             print(dcp_message)
     except Exception as e:
         write_error(f"An error occurred: {e}")

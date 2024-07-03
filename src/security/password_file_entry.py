@@ -8,13 +8,11 @@ class AuthException(Exception):
 
 class Hash:
     def __init__(self, algorithm):
+        assert algorithm in {"sha1", "sha256"}, f"{algorithm} is not a supported hash algorithm"
         self.algorithm = algorithm
 
     def new(self):
         return hashlib.new(self.algorithm)
-
-    def __eq__(self, other):
-        return self.algorithm == other.algorithm
 
 
 class Sha1Hash(Hash):

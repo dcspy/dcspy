@@ -1,17 +1,16 @@
-import logging
+from src.logs import write_warning
 
-logger = logging.getLogger(__name__)
-
-possible_delims = ",;|#+!~^&*"
+possible_delimiters = ",;|#+!~^&*"
 possible_assigns = "=:><`()[]"
 
-def props2string(pr):
+
+def properties_to_string(pr):
     """Return the properties in a comma-separated string."""
     d_idx = 0
     a_idx = 0
 
-    while d_idx < len(possible_delims):
-        if any(possible_delims[d_idx] in str(v) for v in pr.values()):
+    while d_idx < len(possible_delimiters):
+        if any(possible_delimiters[d_idx] in str(v) for v in pr.values()):
             d_idx += 1
         else:
             break
@@ -22,15 +21,16 @@ def props2string(pr):
         else:
             break
 
-    if d_idx == len(possible_delims):
-        logger.warning("Cannot encode props because values contain all possible delims %s", possible_delims)
+    if d_idx == len(possible_delimiters):
+        write_warning(f"Cannot encode props because values contain all possible delims {possible_delimiters}")
         d_idx = a_idx = 0
 
     if a_idx == len(possible_assigns):
-        logger.warning("Cannot encode props because values contain all possible assignment operators %s", possible_assigns)
+        write_warning(
+            f"Cannot encode props because values contain all possible assignment operators {possible_assigns}")
         d_idx = a_idx = 0
 
-    delim = possible_delims[d_idx]
+    delim = possible_delimiters[d_idx]
     assign = possible_assigns[a_idx]
     ret = []
 
@@ -46,7 +46,8 @@ def props2string(pr):
 
     return ''.join(ret)
 
-def string2props(s):
+
+def string_to_properties(s):
     """Convert a string containing comma-separated assignments into a Properties set."""
     ret = {}
     if not s:
@@ -69,9 +70,10 @@ def string2props(s):
         if ei == -1:
             ret[tok] = ""
         else:
-            ret[tok[:ei].strip()] = tok[ei+1:].strip()
+            ret[tok[:ei].strip()] = tok[ei + 1:].strip()
 
     return ret
+
 
 def get_ignore_case(pr, key, default_value=None):
     """Search for a property, ignoring case."""
@@ -80,27 +82,10 @@ def get_ignore_case(pr, key, default_value=None):
             return v
     return default_value
 
+
 def rm_ignore_case(pr, key):
     """Search for a property, remove it and return its value, ignoring case."""
     for k in list(pr.keys()):
         if key.lower() == k.lower():
             return pr.pop(k)
     return None
-
-if __name__ == "__main__":
-    print("Enter properties encoded as a string. Blank line when done.")
-    while True:
-        try:
-            line = input()
-        except EOFError:
-            break
-        if not line.strip():
-            break
-
-        p = string2props(line)
-        for key, val in p.items():
-            print(f"{key} = {val}")
-
-        print("Re-encoded as string: ")
-        print(props2string(p))
-        print()

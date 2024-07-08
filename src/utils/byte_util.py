@@ -28,7 +28,7 @@ def get_int2_big_endian(b, offset):
 
 def put_int4_big_endian(value, byte_array, offset):
     """Put a 4-byte integer in big-endian order into a byte array."""
-    byte_array[offset:offset+4] = value.to_bytes(4, byteorder='big')
+    byte_array[offset:offset + 4] = value.to_bytes(4, byteorder='big')
 
 
 def put_int4_little_endian(i, b, offset):
@@ -41,7 +41,7 @@ def put_int2_little_endian(i, b, offset):
     b[offset:offset + 2] = struct.pack('<H', i)
 
 
-def get_c_string(b, offset):
+def get_c_string(b, offset) -> str:
     """Pull a null-terminated C-style string out of a byte array."""
     end = b.find(b'\x00', offset)
     return b[offset:end].decode()
@@ -56,7 +56,6 @@ def put_c_string(s, b, offset, pad_length):
 def to_hex_string(byte_array):
     """Convert byte array to hex string."""
     return ''.join(f'{b:02X}' for b in byte_array)  # Use uppercase hexadecimal
-
 
 
 def to_hex_ascii_string(b, offset, n):

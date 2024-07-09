@@ -168,6 +168,7 @@ class BasicClient:
         """
         msg = LddsMessage(message_id=LddsMessage.IdCriteria, str_data="")
         # previously, first 50 bytes may have been used for header information including search criteria file name
+        msg.message_length = len(data) + 50
         msg.message_data = bytearray(50) + data
 
         write_debug(f"Sending criteria message (filesize = {len(data)} bytes)")

@@ -152,7 +152,7 @@ class BasicClient:
         :return:
         """
         response = b""
-        message = LddsMessage(message_id=msg_id, message_data=msg_data)
+        message = LddsMessage.create(message_id=msg_id, message_data=msg_data.encode())
         bytes_to_send = message.to_bytes()
         self.send_data(bytes_to_send)
 
@@ -170,10 +170,10 @@ class BasicClient:
         :param data:
         :return:
         """
-        msg = LddsMessage(message_id=LddsMessage.id.search_criteria, message_data="")
+        msg = LddsMessage.create(message_id=LddsMessage.id.search_criteria, message_data=bytearray(50) + data)
         # previously, first 50 bytes may have been used for header information including search criteria file name
-        msg.message_length = len(data) + 50
-        msg.message_data = bytearray(50) + data
+        # msg.message_length = len(data) + 50
+        # msg.message_data = bytearray(50) + data
 
         write_debug(f"Sending criteria message (filesize = {len(data)} bytes)")
         self.send_data(msg.to_bytes())
@@ -269,8 +269,7 @@ class BasicClient:
             try:
                 msg_id = LddsMessage.id.dcp_block
                 message = self.request_dcp_message(msg_id)
-                new_ldds_message = LddsMessage(header=message[0:10])
-                new_ldds_message.message_data = message[10:]
+                new_ldds_message = LddsMessage.parse(message=message)
                 handle_messages(new_ldds_message)
             except ServerError as se:
                 if se.derr_no == LrgsErrorCode.DMSGTIMEOUT:

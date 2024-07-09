@@ -1,9 +1,8 @@
 import json
 import logging
-from src.logs import write_log, write_error
-from src.ldds_message import LddsMessage
+
 from src.basic_client import BasicClient
-from src.utils.byte_util import get_c_string
+from src.logs import write_error
 from src.search.search_criteria import SearchCriteria
 
 
@@ -13,7 +12,7 @@ def test_basic_client(username: str,
                       host: str,
                       port: int = None,
                       timeout: int = None,
-                      debug: bool = True
+                      debug: bool = False
                       ):
     if debug:
         logging.basicConfig(level=logging.DEBUG)
@@ -48,22 +47,23 @@ def test_basic_client(username: str,
 
         return
 
-    try:
-        # TODO: message request iterations
-        # requesting Dcp Messages
-        msg_id = LddsMessage.IdDcpBlock
-        dcp_messages = bytearray()
-        while True:
-            dcp_message = client.request_dcp_message(msg_id)
-            c_string = get_c_string(dcp_message, 10)
-            if c_string.startswith("?35"):
-                break
-            dcp_messages += dcp_message
-        print(dcp_messages)
-    except Exception as e:
-        write_error(f"An error occurred: {e}")
-    finally:
-        client.disconnect()
+    client.process_messages(1024, 30)
+    # try:
+    #     # TODO: message request iterations
+    #     # requesting Dcp Messages
+    #     msg_id = LddsMessage.IdDcpBlock
+    #     dcp_messages = bytearray()
+    #     while True:
+    #         dcp_message = client.request_dcp_message(msg_id)
+    #         c_string = get_c_string(dcp_message, 10)
+    #         if c_string.__contains__("?35"):
+    #             break
+    #         dcp_messages += dcp_message
+    #     print(dcp_messages)
+    # except Exception as e:
+    #     write_error(f"An error occurred: {e}")
+    # finally:
+    #     client.disconnect()
 
 
 if __name__ == "__main__":

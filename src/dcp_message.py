@@ -1,7 +1,7 @@
 import datetime
 from typing import Optional, List
 
-from dcpmessage.constants.dcp_msg_flag import DcpMsgFlag
+from src.constants.dcp_msg_flag import DcpMessageFlag
 
 
 class DcpMsg:
@@ -109,7 +109,7 @@ class DcpMsg:
         return chr(field[0])
 
     def isGoesMessage(self) -> bool:
-        return (self.flagbits & DcpMsgFlag.MSG_TYPE_MASK) == DcpMsgFlag.MSG_TYPE_GOES
+        return (self.flagbits & DcpMessageFlag.MSG_TYPE_MASK) == DcpMessageFlag.MSG_TYPE_GOES
 
     def getSignalStrength(self) -> int:
         field = self.getField(self.IDX_SIGSTRENGTH, 2)
@@ -249,11 +249,11 @@ class DcpMsg:
         return any(code in self.badCodes for code in self.xmitFailureCodes)
 
     def isGoesRandom(self) -> bool:
-        return (self.getFlagbits() & DcpMsgFlag.MSG_TYPE_MASK) == DcpMsgFlag.MSG_TYPE_GOES_RD
+        return (self.getFlagbits() & DcpMessageFlag.MSG_TYPE_MASK) == DcpMessageFlag.MSG_TYPE_GOES_RD
 
     def hasCarrierTimes(self) -> bool:
         f = self.getFlagbits()
-        return (f & DcpMsgFlag.HAS_CARRIER_TIMES) != 0 and (f & DcpMsgFlag.CARRIER_TIME_EST) == 0
+        return (f & DcpMessageFlag.HAS_CARRIER_TIMES) != 0 and (f & DcpMessageFlag.CARRIER_TIME_EST) == 0
 
     def getXmitTimeWindow(self):
         return self.xmitWindow
@@ -319,7 +319,7 @@ class DcpMsg:
         return ""
 
     def isIridium(self) -> bool:
-        return DcpMsgFlag.isIridium(self.flagbits) or (
+        return DcpMessageFlag.isIridium(self.flagbits) or (
                     self.data[0] == ord('I') and self.data[1] == ord('D') and self.data[2] == ord('='))
 
     def getGoesSignalStrength(self) -> float:

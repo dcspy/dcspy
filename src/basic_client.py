@@ -2,7 +2,6 @@ import socket
 import time
 from datetime import datetime, timezone
 from typing import Union, List, Optional
-
 from src.constants.dcp_msg_flag import DcpMessageFlag
 from src.constants.lrgs_error_codes import LrgsErrorCode
 from src.dcp_message import DcpMsg
@@ -107,7 +106,7 @@ class BasicClient:
         :param password:
         :return:
         """
-        msg_id = LddsMessage.IdAuthHello
+        msg_id = LddsMessage.id.auth_hello
 
         is_authenticated = False
         for hash_algo in [Sha1Hash, Sha256Hash]:
@@ -153,8 +152,8 @@ class BasicClient:
         :return:
         """
         response = b""
-        message = LddsMessage(message_id=msg_id, str_data=msg_data)
-        bytes_to_send = message.get_bytes()
+        message = LddsMessage(message_id=msg_id, message_data=msg_data)
+        bytes_to_send = message.to_bytes()
         self.send_data(bytes_to_send)
 
         try:
@@ -171,13 +170,13 @@ class BasicClient:
         :param data:
         :return:
         """
-        msg = LddsMessage(message_id=LddsMessage.IdCriteria, str_data="")
+        msg = LddsMessage(message_id=LddsMessage.id.search_criteria, message_data="")
         # previously, first 50 bytes may have been used for header information including search criteria file name
         msg.message_length = len(data) + 50
         msg.message_data = bytearray(50) + data
 
         write_debug(f"Sending criteria message (filesize = {len(data)} bytes)")
-        self.send_data(msg.get_bytes())
+        self.send_data(msg.to_bytes())
         try:
             response = self.receive_data()
             write_debug(response.decode())
@@ -268,9 +267,9 @@ class BasicClient:
 
         while not done:
             try:
-                msg_id = LddsMessage.IdDcpBlock
+                msg_id = LddsMessage.id.dcp_block
                 message = self.request_dcp_message(msg_id)
-                new_ldds_message = LddsMessage(hdr=message[0:10])
+                new_ldds_message = LddsMessage(header=message[0:10])
                 new_ldds_message.message_data = message[10:]
                 handle_messages(new_ldds_message)
             except ServerError as se:
@@ -296,7 +295,7 @@ class BasicClient:
         return f"{self.host}:{self.port}"
 
     def send_goodbye(self):
-        msg_id = LddsMessage.IdGoodbye
+        msg_id = LddsMessage.id.goodbye
         res = self.request_dcp_message(msg_id, "")
         c_string = get_c_string(res, 0)
         write_debug(c_string)

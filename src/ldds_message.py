@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from src.utils.array_utils import get_field, resize
 
 
@@ -6,76 +7,82 @@ class ProtocolError(Exception):
     pass
 
 
+@dataclass
+class LddsMessageConstants:
+    valid_header_length: int = 10
+    valid_sync_code: bytes = b"FAF0"
+    max_data_length: int = 99000
+    valid_ids: frozenset[str] = frozenset(("a", "b", "c", "d", "e", "f", "g",
+                                           "h", "i", "j", "k", "l", "m", "n",
+                                           "o", "p", "q", "r", "s", "t", "u"))
+
+
+@dataclass
+class LddsMessageIds:
+    hello: str = 'a'
+    goodbye: str = 'b'
+    status: str = 'c'
+    start: str = 'd'
+    stop: str = 'e'
+    dcp: str = 'f'
+    search_criteria: str = 'g'
+    get_outages: str = 'h'
+    idle: str = 'i'
+    put_netlist: str = 'j'
+    get_netlist: str = 'k'
+    assert_outages: str = 'l'
+    auth_hello: str = 'm'
+    dcp_block: str = 'n'
+    events: str = 'o'
+    ret_config: str = 'p'
+    inst_config: str = 'q'
+    dcp_block_ext: str = 'r'
+    unused_6: str = 's'
+    unused_7: str = 't'
+    user: str = 'u'
+
+
 class LddsMessage:
-    ValidHdrLength = 10
-    ValidSync = b"FAF0"
-    ValidMaxDataLength = 99000
-    ValidIds = {"a", "b", "c", "d", "e", "f", "g",
-                "h", "i", "j", "k", "l", "m", "n",
-                "o", "p", "q", "r", "s", "t", "u"}
-    IdHello = 'a'
-    IdGoodbye = 'b'
-    IdStatus = 'c'
-    IdStart = 'd'
-    IdStop = 'e'
-    IdDcp = 'f'
-    IdCriteria = 'g'
-    IdGetOutages = 'h'
-    IdIdle = 'i'
-    IdPutNetlist = 'j'
-    IdGetNetlist = 'k'
-    IdAssertOutages = 'l'
-    IdAuthHello = 'm'
-    IdDcpBlock = 'n'
-    IdEvents = 'o'
-    IdRetConfig = 'p'
-    IdInstConfig = 'q'
-    IdDcpBlockExt = 'r'
-    IdUnused_6 = 's'
-    IdUnused_7 = 't'
-    IdUser = 'u'
+    id = LddsMessageIds()
+    constants = LddsMessageConstants()
 
     def __init__(self,
-                 hdr=None,
-                 message_id=None,
-                 str_data=None):
-        if hdr is not None:
-            if len(hdr) < self.ValidHdrLength:
-                raise ProtocolError(f"Invalid LDDS message header - length={len(hdr)}")
-            sync = bytes(get_field(hdr, 0, 4)).decode()
+                 header: bytes = None,
+                 message_id: str = None,
+                 message_data: str = None):
 
-            if sync != self.ValidSync.decode():
+        if header is not None:
+            if len(header) < self.constants.valid_header_length:
+                raise ProtocolError(f"Invalid LDDS message header - length={len(header)}")
+            sync = bytes(get_field(header, 0, 4)).decode()
+
+            if sync != self.constants.valid_sync_code.decode():
                 raise ProtocolError(f"Invalid LDDS message header - bad sync '{sync}'")
 
-            self.message_id = chr(hdr[4])
-            if self.message_id not in self.ValidIds:
+            self.message_id = chr(header[4])
+            if self.message_id not in self.constants.valid_ids:
                 raise ProtocolError(f"Invalid LDDS message header - ID = '{self.message_id}'")
 
-            lenbytes = get_field(hdr, 5, 5)
-            for i in range(5):
-                if lenbytes[i] == ord(' '):
-                    lenbytes[i] = ord('0')
-
-            lenstr = bytes(lenbytes).decode()
+            message_length_str = header[5:10].decode().replace(" ", "0")
             try:
-                self.message_length = int(lenstr)
+                self.message_length = int(message_length_str)
             except ValueError:
-                raise ProtocolError(f"Invalid LDDS message header - bad length field = '{lenstr}'")
-        elif message_id is not None and str_data is not None:
+                raise ProtocolError(f"Invalid LDDS message header - bad length field = '{message_length_str}'")
+        elif message_id is not None and message_data is not None:
             self.message_id = message_id
-            self.message_length = len(str_data) if str_data else 0
-            self.message_data = resize(str_data.encode(), self.message_length) \
+            self.message_length = len(message_data) if message_data else 0
+            self.message_data = resize(message_data.encode(), self.message_length) \
                 if self.message_length > 0 else None
 
-    def get_bytes(self):
+    def to_bytes(self):
         # Create a formatted string for the message length
         length_str = f"{self.message_length:05d}"
 
         # Initialize the byte array with the header
-        ret = bytearray(self.ValidHdrLength + self.message_length)
+        ret = bytearray(self.constants.valid_header_length + self.message_length)
 
         # Set the sync bytes
-        ret[:4] = self.ValidSync
+        ret[:4] = self.constants.valid_sync_code
 
         # Set the message ID
         ret[4] = ord(self.message_id)

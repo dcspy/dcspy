@@ -1,18 +1,9 @@
+from src.utils.array_utils import get_field, resize
+
+
 class ProtocolError(Exception):
     """Custom exception for protocol errors."""
     pass
-
-
-class ArrayUtil:
-    @staticmethod
-    def get_field(byte_array, start, length):
-        """Get a specific field from a byte array."""
-        return byte_array[start:start + length]
-
-    @staticmethod
-    def resize(byte_array, new_length):
-        """Resize a byte array to a new length."""
-        return byte_array[:new_length] + b'\0' * (new_length - len(byte_array))
 
 
 class LddsMessage:
@@ -51,7 +42,7 @@ class LddsMessage:
         if hdr is not None:
             if len(hdr) < self.ValidHdrLength:
                 raise ProtocolError(f"Invalid LDDS message header - length={len(hdr)}")
-            sync = bytes(ArrayUtil.get_field(hdr, 0, 4)).decode()
+            sync = bytes(get_field(hdr, 0, 4)).decode()
 
             if sync != self.ValidSync.decode():
                 raise ProtocolError(f"Invalid LDDS message header - bad sync '{sync}'")
@@ -60,7 +51,7 @@ class LddsMessage:
             if self.message_id not in self.ValidIds:
                 raise ProtocolError(f"Invalid LDDS message header - ID = '{self.message_id}'")
 
-            lenbytes = ArrayUtil.get_field(hdr, 5, 5)
+            lenbytes = get_field(hdr, 5, 5)
             for i in range(5):
                 if lenbytes[i] == ord(' '):
                     lenbytes[i] = ord('0')
@@ -73,7 +64,7 @@ class LddsMessage:
         elif message_id is not None and str_data is not None:
             self.message_id = message_id
             self.message_length = len(str_data) if str_data else 0
-            self.message_data = ArrayUtil.resize(str_data.encode(), self.message_length) \
+            self.message_data = resize(str_data.encode(), self.message_length) \
                 if self.message_length > 0 else None
 
     def get_bytes(self):

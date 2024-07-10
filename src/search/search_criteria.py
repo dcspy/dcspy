@@ -86,11 +86,11 @@ class SearchCriteria:
                 key_word_, value = [x.strip() for x in line_.split(":", 1)]
 
                 match key_word_:
-                    case "DRS_SINCE" | "LRGS_SINCE" | "DRSSINCE" | "LRGSSINCE":
+                    case "DRS_SINCE":
                         self.set_lrgs_since(value)
-                    case "DRS_UNTIL" | "LRGS_UNTIL" | "DRSUNTIL" | "LRGSUNTIL":
+                    case "DRS_UNTIL":
                         self.set_lrgs_until(value)
-                    case "DCP_ADDRESS" | "DCPADDRESS":
+                    case "DCP_ADDRESS":
                         self.add_dcp_address(DcpAddress(value))
                     case "SOURCE":
                         self.add_source(DcpMessageFlag.source_name_to_value(value))

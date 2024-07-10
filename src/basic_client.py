@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Union, List, Optional
 from src.constants.dcp_msg_flag import DcpMessageFlag
 from src.constants.lrgs_error_codes import LrgsErrorCode
-from src.dcp_message import DcpMsg
+from src.dcp_message import DcpMessage
 from src.exceptions.server_exceptions import ServerError
 from src.ldds_message import LddsMessage
 from src.logs import write_debug, write_error, write_log
@@ -189,7 +189,7 @@ class BasicClient:
         goodbye = True
         end_time = time.time() + self.timeout
 
-        def ldds_msg_to_dcp_msg_block(client, msg: LddsMessage) -> Optional[List[DcpMsg]]:
+        def ldds_msg_to_dcp_msg_block(client, msg: LddsMessage) -> Optional[List[DcpMessage]]:
             write_log(f"Parsing block response. Total length = {msg.message_length}")
 
             dcp_msgs = []
@@ -198,7 +198,7 @@ class BasicClient:
 
             msg_start = 0
             while msg_start < msg.message_length and not garbled:
-                if msg.message_length - msg_start < DcpMsg.DCP_MSG_MIN_LENGTH:
+                if msg.message_length - msg_start < DcpMessage.DCP_MSG_MIN_LENGTH:
                     write_debug(
                         f"DDS Connection ({client.host}:{client.port}) Response to IdDcpBlock incomplete. "
                         f"Need at least 37 bytes. Only have {msg.message_length - msg_start} at location {msg_start}")
@@ -208,17 +208,17 @@ class BasicClient:
                     break
 
                 try:
-                    msglen = parse_int(msg.message_data, msg_start + DcpMsg.IDX_DATALENGTH, 5)
+                    msglen = parse_int(msg.message_data, msg_start + DcpMessage.IDX_DATALENGTH, 5)
                 except ValueError:
-                    lenfield = get_field(msg.message_data, msg_start + DcpMsg.IDX_DATALENGTH, 5).decode('utf-8')
+                    lenfield = get_field(msg.message_data, msg_start + DcpMessage.IDX_DATALENGTH, 5).decode('utf-8')
                     write_error(
                         f"DDS Connection ({client.host}:{client.port}) Response to IdDcpBlock contains bad length field '{lenfield}' requires a 5-digit 0-filled integer, msgnum={msgnum}, msg_start={msg_start}")
                     garbled = True
                     break
 
-                numbytes = DcpMsg.DCP_MSG_MIN_LENGTH + msglen
+                numbytes = DcpMessage.DCP_MSG_MIN_LENGTH + msglen
 
-                dcp_msg = DcpMsg(msg.message_data, numbytes, msg_start)
+                dcp_msg = DcpMessage(msg.message_data, numbytes, msg_start)
                 dcp_msg.flagbits = DcpMessageFlag.MSG_PRESENT | DcpMessageFlag.SRC_DDS | DcpMessageFlag.MSG_NO_SEQNUM
 
                 dcp_msgs.append(dcp_msg)

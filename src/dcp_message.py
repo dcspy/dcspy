@@ -1,10 +1,9 @@
 import datetime
 from typing import Optional, List
-
 from src.constants.dcp_msg_flag import DcpMessageFlag
 
 
-class DcpMsg:
+class DcpMessage:
     MAX_DATA_LENGTH = 99800
     MAX_FAILURE_CODES = 8
     IDX_DCP_ADDR = 0
@@ -320,7 +319,7 @@ class DcpMsg:
 
     def isIridium(self) -> bool:
         return DcpMessageFlag.isIridium(self.flagbits) or (
-                    self.data[0] == ord('I') and self.data[1] == ord('D') and self.data[2] == ord('='))
+                self.data[0] == ord('I') and self.data[1] == ord('D') and self.data[2] == ord('='))
 
     def getGoesSignalStrength(self) -> float:
         return self.goesSignalStrength

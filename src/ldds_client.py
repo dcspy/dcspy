@@ -192,15 +192,15 @@ class LddsClient(BasicClient):
         try:
             while True:
                 response = self.request_dcp_message(msg_id)
-                _, server_error = LddsMessage.parse(response)
+                server_message, server_error = LddsMessage.parse(response)
                 if server_error is not None:
                     if server_error.derr_no in (LrgsErrorCode.DUNTIL.value, LrgsErrorCode.DUNTILDRS.value):
                         write_log(LrgsErrorCode.DUNTIL.description)
                         break
                     else:
                         raise server_error
-                dcp_messages += response
-            return LddsMessage.parse(dcp_messages)
+                dcp_messages += server_message.message_data
+            return LddsMessage.create(msg_id, dcp_messages)
         except Exception as err:
             write_debug(f"Error receiving data: {err}")
             raise err

@@ -46,16 +46,12 @@ def get_dcp_messages(username: str,
         client.disconnect()
         return
 
-    dcp_block, server_error = client.request_dcp_block()
-    if server_error is None:
-        dcp_messages = DcpMessage.explode(dcp_block)
-    else:
-        client.disconnect()
-        raise server_error
+    dcp_block = client.request_dcp_block()
+    dcp_messages = DcpMessage.explode(dcp_block)
 
     client.send_goodbye()
     client.disconnect()
-    print(dcp_messages)
+    print("\n".join(dcp_messages))
     return dcp_messages
 
 

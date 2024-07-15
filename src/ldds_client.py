@@ -13,7 +13,7 @@ from src.utils.array_utils import get_field
 from src.utils.byte_util import get_c_string, parse_int
 
 
-class LddsClient:
+class BasicClient:
     def __init__(self,
                  host: str,
                  port: int,
@@ -24,8 +24,8 @@ class LddsClient:
         :param port:
         :param timeout:
         """
-        self.port = port
         self.host = host
+        self.port = port
         self.timeout = timeout
         self.socket = None
         self.last_connect_attempt = 0
@@ -95,6 +95,14 @@ class LddsClient:
         except Exception as e:
             write_debug(f"Error receiving data: {e}")
         return bytes(buffer)
+
+
+class LddsClient(BasicClient):
+    def __init__(self,
+                 host: str,
+                 port: int,
+                 timeout: Union[float, int]):
+        super().__init__(host=host, port=port, timeout=timeout)
 
     def authenticate_user(self,
                           user_name: str = "user",

@@ -1,7 +1,7 @@
 import json
 import logging
 
-from src.basic_client import BasicClient
+from src.ldds_client import BasicClient
 from src.logs import write_error
 from src.search.search_criteria import SearchCriteria
 

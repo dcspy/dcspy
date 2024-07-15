@@ -198,7 +198,7 @@ class BasicClient:
 
             msg_start = 0
             while msg_start < msg.message_length and not garbled:
-                if msg.message_length - msg_start < DcpMessage.DCP_MSG_MIN_LENGTH:
+                if msg.message_length - msg_start < DcpMessage.dcp_header_length:
                     write_debug(
                         f"DDS Connection ({client.host}:{client.port}) Response to IdDcpBlock incomplete. "
                         f"Need at least 37 bytes. Only have {msg.message_length - msg_start} at location {msg_start}")
@@ -216,7 +216,7 @@ class BasicClient:
                     garbled = True
                     break
 
-                numbytes = DcpMessage.DCP_MSG_MIN_LENGTH + msglen
+                numbytes = DcpMessage.dcp_header_length + msglen
 
                 dcp_msg = DcpMessage(msg.message_data, numbytes, msg_start)
                 dcp_msg.flagbits = DcpMessageFlag.MSG_PRESENT | DcpMessageFlag.SRC_DDS | DcpMessageFlag.MSG_NO_SEQNUM

@@ -4,7 +4,7 @@ from src.constants.dcp_msg_flag import DcpMessageFlag
 
 
 class DcpMessage:
-    MAX_DATA_LENGTH = 99800
+    max_data_length = 99800
     MAX_FAILURE_CODES = 8
     IDX_DCP_ADDR = 0
     IDX_YEAR = 8
@@ -22,7 +22,7 @@ class DcpMessage:
     DRGS_CODE = 30
     IDX_DATALENGTH = 32
     IDX_DATA = 37
-    DCP_MSG_MIN_LENGTH = 37
+    dcp_header_length = 37
     badCodes = "?MTUBIQW"
 
     def __init__(self, data: Optional[bytes] = None, size: int = 0, offset: int = 0):
@@ -56,9 +56,9 @@ class DcpMessage:
             self.set(data, size, offset)
 
     def set(self, data: bytes, size: int, offset: int):
-        if size > self.MAX_DATA_LENGTH:
-            print(f"DcpMsg too big ({size}). Truncated to max len={self.MAX_DATA_LENGTH}")
-            size = self.MAX_DATA_LENGTH
+        if size > self.max_data_length:
+            print(f"DcpMsg too big ({size}). Truncated to max len={self.max_data_length}")
+            size = self.max_data_length
         buf = data[offset:offset + size]
         self.setData(buf)
 

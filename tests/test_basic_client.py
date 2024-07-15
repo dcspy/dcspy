@@ -1,5 +1,5 @@
 import unittest
-from src.basic_client import BasicClient
+from src.ldds_client import BasicClient
 
 
 class TestBasicClient(unittest.TestCase):

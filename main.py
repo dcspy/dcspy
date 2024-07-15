@@ -1,19 +1,18 @@
 import json
 import logging
-
-from src.ldds_client import BasicClient
+from src.ldds_client import LddsClient
 from src.logs import write_error
 from src.search.search_criteria import SearchCriteria
 
 
-def test_basic_client(username: str,
-                      password: str,
-                      search_criteria: str,
-                      host: str,
-                      port: int = None,
-                      timeout: int = None,
-                      debug: bool = False
-                      ):
+def get_dcp_messages(username: str,
+                     password: str,
+                     search_criteria: str,
+                     host: str,
+                     port: int = None,
+                     timeout: int = None,
+                     debug: bool = False
+                     ):
     if debug:
         logging.basicConfig(level=logging.DEBUG)
     else:
@@ -21,7 +20,7 @@ def test_basic_client(username: str,
 
     port = port if port is not None else 16003
     timeout = timeout if timeout is not None else 30
-    client = BasicClient(host=host, port=port, timeout=timeout)
+    client = LddsClient(host=host, port=port, timeout=timeout)
 
     try:
         client.connect()
@@ -70,8 +69,8 @@ if __name__ == "__main__":
     with open("./credentials.json", "r") as credentials_file:
         credentials = json.load(credentials_file)
 
-    test_basic_client(username=credentials["username"],
-                      password=credentials["password"],
-                      search_criteria="./test_search_criteria.sc",
-                      host="cdadata.wcda.noaa.gov",
-                      debug=True)
+    get_dcp_messages(username=credentials["username"],
+                     password=credentials["password"],
+                     search_criteria="./test_search_criteria.sc",
+                     host="cdadata.wcda.noaa.gov",
+                     debug=True)

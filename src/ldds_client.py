@@ -13,7 +13,7 @@ from src.utils.array_utils import get_field
 from src.utils.byte_util import get_c_string, parse_int
 
 
-class BasicClient:
+class LddsClient:
     def __init__(self,
                  host: str,
                  port: int,
@@ -269,7 +269,7 @@ class BasicClient:
             try:
                 msg_id = LddsMessage.id.dcp_block
                 message = self.request_dcp_message(msg_id)
-                new_ldds_message = LddsMessage.parse(message=message)
+                new_ldds_message, server_error = LddsMessage.parse(message=message)
                 handle_messages(new_ldds_message)
             except ServerError as se:
                 if se.derr_no == LrgsErrorCode.DMSGTIMEOUT:

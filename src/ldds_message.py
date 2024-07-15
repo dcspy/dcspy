@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from src.exceptions.server_exceptions import ServerError
 
 
 class ProtocolError(Exception):
@@ -49,7 +50,8 @@ class LddsMessage:
                  message_id: str = None,
                  message_length: int = None,
                  message_data: bytes = None,
-                 header: bytes = None):
+                 header: bytes = None,
+                 ):
         self.message_id = message_id
         self.message_length = message_length
         self.message_data = message_data
@@ -75,12 +77,16 @@ class LddsMessage:
             raise ProtocolError(f"Invalid LDDS message header - bad length field = '{message_length_str}'")
 
         message_data = message[header_length:]
+        if message_data.startswith(b"?"):
+            server_error = ServerError(message_data.decode())
+        else:
+            server_error = None
 
         ldds_message = LddsMessage(message_id=message_id,
                                    message_length=message_length,
                                    message_data=message_data,
                                    header=header)
-        return ldds_message
+        return ldds_message, server_error
 
     @staticmethod
     def create(message_id: str,
@@ -89,7 +95,9 @@ class LddsMessage:
         message_id = message_id
         message_length = len(message_data)
         message_data = message_data
-        ldds_message = LddsMessage(message_id, message_length, message_data)
+        ldds_message = LddsMessage(message_id=message_id,
+                                   message_length=message_length,
+                                   message_data=message_data)
         ldds_message.__make_header()
         return ldds_message
 

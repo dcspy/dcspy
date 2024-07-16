@@ -3,6 +3,7 @@ import logging
 from src.ldds_client import LddsClient
 from src.logs import write_error
 from src.search.search_criteria import SearchCriteria
+from src.dcp_message import DcpMessage
 
 
 def get_dcp_messages(username: str,
@@ -43,26 +44,15 @@ def get_dcp_messages(username: str,
     except Exception as e:
         write_error("Failed to send search criteria. Error: " + str(e))
         client.disconnect()
-
         return
 
-    client.process_messages(1024, 30)
-    # try:
-    #     # TODO: message request iterations
-    #     # requesting Dcp Messages
-    #     msg_id = LddsMessage.IdDcpBlock
-    #     dcp_messages = bytearray()
-    #     while True:
-    #         dcp_message = client.request_dcp_message(msg_id)
-    #         c_string = get_c_string(dcp_message, 10)
-    #         if c_string.__contains__("?35"):
-    #             break
-    #         dcp_messages += dcp_message
-    #     print(dcp_messages)
-    # except Exception as e:
-    #     write_error(f"An error occurred: {e}")
-    # finally:
-    #     client.disconnect()
+    dcp_block = client.request_dcp_block()
+    dcp_messages = DcpMessage.explode(dcp_block)
+
+    client.send_goodbye()
+    client.disconnect()
+    print("\n".join(dcp_messages))
+    return dcp_messages
 
 
 if __name__ == "__main__":

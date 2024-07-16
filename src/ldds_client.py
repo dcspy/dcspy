@@ -1,16 +1,13 @@
 import socket
 import time
 from datetime import datetime, timezone
-from typing import Union, List, Optional
-from src.constants.dcp_msg_flag import DcpMessageFlag
+from typing import Union
 from src.constants.lrgs_error_codes import LrgsErrorCode
-from src.dcp_message import DcpMessage
 from src.exceptions.server_exceptions import ServerError
 from src.ldds_message import LddsMessage
 from src.logs import write_debug, write_error, write_log
 from src.security import Hash, Sha1Hash, Sha256Hash, PasswordFileEntry, Authenticator
-from src.utils.array_utils import get_field
-from src.utils.byte_util import get_c_string, parse_int
+from src.utils.byte_util import get_c_string
 
 
 class BasicClient:
@@ -178,10 +175,8 @@ class LddsClient(BasicClient):
         :param data:
         :return:
         """
-        msg = LddsMessage.create(message_id=LddsMessage.id.search_criteria, message_data=bytearray(50) + data)
-        # previously, first 50 bytes may have been used for header information including search criteria file name
-        # msg.message_length = len(data) + 50
-        # msg.message_data = bytearray(50) + data
+        msg = LddsMessage.create(message_id=LddsMessage.id.search_criteria,
+                                 message_data=bytearray(50) + data)
 
         write_debug(f"Sending criteria message (filesize = {len(data)} bytes)")
         self.send_data(msg.to_bytes())
@@ -191,111 +186,41 @@ class LddsClient(BasicClient):
         except Exception as e:
             write_error(f"Error receiving data: {e}")
 
-    def process_messages(self, max_data, wait_msec):
-        done = False
-        total = 0
-        goodbye = True
-        end_time = time.time() + self.timeout
+    def request_dcp_block(self):
+        msg_id = LddsMessage.id.dcp_block
+        dcp_messages = bytearray()
+        try:
+            while True:
+                response = self.request_dcp_message(msg_id)
+                server_message, server_error = LddsMessage.parse(response)
+                if server_error is not None:
+                    if server_error.derr_no in (LrgsErrorCode.DUNTIL.value, LrgsErrorCode.DUNTILDRS.value):
+                        write_log(LrgsErrorCode.DUNTIL.description)
+                        break
+                    else:
+                        raise server_error
+                dcp_messages += server_message.message_data
+            return LddsMessage.create(msg_id, dcp_messages)
+        except Exception as err:
+            write_debug(f"Error receiving data: {err}")
+            raise err
 
-        def ldds_msg_to_dcp_msg_block(client, msg: LddsMessage) -> Optional[List[DcpMessage]]:
-            write_log(f"Parsing block response. Total length = {msg.message_length}")
+    def handle_timeout(self, end_time):
+        if time.time() > end_time:
+            s = f"No message received in {self.timeout} seconds, exiting."
+            write_error(s)
+            raise TimeoutError(s)
+        else:
+            write_error("Server caught up to present, pausing...")
+            time.sleep(1)
 
-            dcp_msgs = []
-            garbled = False
-            msgnum = 0
-
-            msg_start = 0
-            while msg_start < msg.message_length and not garbled:
-                if msg.message_length - msg_start < DcpMessage.dcp_header_length:
-                    write_debug(
-                        f"DDS Connection ({client.host}:{client.port}) Response to IdDcpBlock incomplete. "
-                        f"Need at least 37 bytes. Only have {msg.message_length - msg_start} at location {msg_start}")
-                    write_debug(
-                        f"Response='{msg.message_data[msg_start:msg.message_length].decode('utf-8')}'")
-                    garbled = True
-                    break
-
-                try:
-                    msglen = parse_int(msg.message_data, msg_start + DcpMessage.IDX_DATALENGTH, 5)
-                except ValueError:
-                    lenfield = get_field(msg.message_data, msg_start + DcpMessage.IDX_DATALENGTH, 5).decode('utf-8')
-                    write_error(
-                        f"DDS Connection ({client.host}:{client.port}) Response to IdDcpBlock contains bad length field '{lenfield}' requires a 5-digit 0-filled integer, msgnum={msgnum}, msg_start={msg_start}")
-                    garbled = True
-                    break
-
-                numbytes = DcpMessage.dcp_header_length + msglen
-
-                dcp_msg = DcpMessage(msg.message_data, numbytes, msg_start)
-                dcp_msg.flagbits = DcpMessageFlag.MSG_PRESENT | DcpMessageFlag.SRC_DDS | DcpMessageFlag.MSG_NO_SEQNUM
-
-                dcp_msgs.append(dcp_msg)
-                msg_start += numbytes
-                msgnum += 1
-
-            write_log(f"Message Block Response contained {len(dcp_msgs)} dcp msgs.")
-
-            return dcp_msgs if dcp_msgs else None
-
-        def handle_messages(ldds_message):
-            nonlocal total, done, end_time
-
-            c_string = get_c_string(ldds_message.message_data, 0)
-            if len(c_string) > 0 and c_string.startswith("?"):
-                raise ServerError(c_string)
-
-            mssg_list = ldds_msg_to_dcp_msg_block(self, ldds_message)
-            total += len(mssg_list)
-            for mssg in mssg_list:
-                print(get_c_string(mssg.data, 0))
-            if total > max_data > 0:
-                write_debug(f"Max data limit reached ({max_data})")
-                done = True
-            end_time = time.time() + self.timeout
-            if wait_msec > 0:
-                time.sleep(wait_msec / 1000.0)
-
-        def handle_timeout():
-            nonlocal done
-            if time.time() > end_time:
-                s = f"No message received in {self.timeout} seconds, exiting."
-                write_error(s)
-                done = True
-            else:
-                write_error("Server caught up to present, pausing...")
-                time.sleep(1)
-
-        def handle_server_error(se):
-            nonlocal done
-            if se.derr_no in (LrgsErrorCode.DUNTIL, LrgsErrorCode.DUNTILDRS):
-                write_log("Until time reached. Normal termination")
-            else:
-                write_error(se)
-            done = True
-
-        while not done:
-            try:
-                msg_id = LddsMessage.id.dcp_block
-                message = self.request_dcp_message(msg_id)
-                new_ldds_message, server_error = LddsMessage.parse(message=message)
-                handle_messages(new_ldds_message)
-            except ServerError as se:
-                if se.derr_no == LrgsErrorCode.DMSGTIMEOUT:
-                    handle_timeout()
-                else:
-                    handle_server_error(se)
-            except Exception as e:
-                write_error(f"Fatal error: {e}")
-                goodbye = False
-                done = True
-
-        if goodbye:
-            try:
-                self.send_goodbye()
-            except Exception as e:
-                write_error(f"Error during goodbye: {e}")
-            finally:
-                self.disconnect()
+    @staticmethod
+    def handle_server_error(server_error: ServerError):
+        if server_error.derr_no in (LrgsErrorCode.DUNTIL, LrgsErrorCode.DUNTILDRS):
+            write_log("Until time reached. Normal termination")
+            return None
+        else:
+            return server_error
 
     @property
     def name(self):
@@ -306,4 +231,3 @@ class LddsClient(BasicClient):
         res = self.request_dcp_message(msg_id, "")
         c_string = get_c_string(res, 0)
         write_debug(c_string)
-        pass

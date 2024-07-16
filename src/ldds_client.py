@@ -11,16 +11,19 @@ from src.utils.byte_util import get_c_string
 
 
 class BasicClient:
+    """
+     Class for basic socket connection.
+
+     :param host: host name or ip address
+     :param port: port number
+     :param timeout: socket timeout in seconds
+     """
+
     def __init__(self,
                  host: str,
                  port: int,
                  timeout: Union[float, int]):
-        """
 
-        :param host:
-        :param port:
-        :param timeout:
-        """
         self.host = host
         self.port = port
         self.timeout = timeout
@@ -28,6 +31,11 @@ class BasicClient:
         self.last_connect_attempt = 0
 
     def connect(self):
+        """
+        Create a socket connection.
+
+        :return: None
+        """
         try:
             write_debug(f"Attempting to connect to {self.host}:{self.port}")
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -43,6 +51,11 @@ class BasicClient:
             raise IOError(f"Cannot connect to {self.host}:{self.port}") from ex
 
     def disconnect(self):
+        """
+        Close the socket.
+
+        :return:
+        """
         try:
             if self.socket:
                 self.socket.close()
@@ -52,7 +65,15 @@ class BasicClient:
         finally:
             self.socket = None
 
-    def send_data(self, data):
+    def send_data(self,
+                  data: bytes,
+                  ):
+        """
+        Send data via established socket.
+
+        :param data: bytes data to send
+        :return:
+        """
         if self.socket is None:
             raise IOError("BasicClient socket closed.")
         self.socket.sendall(data)

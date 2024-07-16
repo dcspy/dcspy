@@ -1,5 +1,5 @@
 import unittest
-from src.security import PasswordFileEntry, Sha1Hash, Sha256Hash, Hash
+from src.security import Credentials, Sha1Hash, Sha256Hash, Hash
 from src.security import Authenticator
 
 
@@ -12,7 +12,7 @@ class TestCore(unittest.TestCase):
     def test_basic_authenticator_string_sha1(self):
         username = "test_user"
         password = "test_pass"
-        pfe = PasswordFileEntry(username=username, password=password, hash_algo=Sha1Hash())
+        pfe = Credentials(username=username, password=password, hash_algo=Sha1Hash())
         time_t = 1650000000  # Example timestamp
         auth_str = Authenticator(time_t, pfe)
 
@@ -22,7 +22,7 @@ class TestCore(unittest.TestCase):
     def test_basic_authenticator_string_sha256(self):
         username = "test_user"
         password = "test_pass"
-        pfe = PasswordFileEntry(username=username, password=password, hash_algo=Sha256Hash())
+        pfe = Credentials(username=username, password=password, hash_algo=Sha256Hash())
         time_t = 1650000000  # Example timestamp
         auth_str = Authenticator(time_t, pfe, Sha256Hash())
 
@@ -32,7 +32,7 @@ class TestCore(unittest.TestCase):
     def test_invalid_algorithm(self):
         username = "test_user"
         password = "test_pass"
-        pfe = PasswordFileEntry(username=username, password=password, hash_algo=Sha1Hash())
+        pfe = Credentials(username=username, password=password, hash_algo=Sha1Hash())
         time_t = 1650000000  # Example timestamp
 
         try:

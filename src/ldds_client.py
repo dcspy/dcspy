@@ -6,7 +6,7 @@ from src.constants.lrgs_error_codes import LrgsErrorCode
 from src.exceptions.server_exceptions import ServerError
 from src.ldds_message import LddsMessage
 from src.logs import write_debug, write_error, write_log
-from src.security import Hash, Sha1Hash, Sha256Hash, PasswordFileEntry, Authenticator
+from src.security import Hash, Sha1Hash, Sha256Hash, Credentials, Authenticator
 from src.utils.byte_util import get_c_string
 
 
@@ -140,7 +140,7 @@ class LddsClient(BasicClient):
         time_t = int(now.timestamp())  # Convert to Unix timestamp
         time_str = now.strftime("%y%j%H%M%S")
 
-        pfe = PasswordFileEntry(username=user_name, password=password)
+        pfe = Credentials(username=user_name, password=password)
         authenticator = Authenticator(time_t, pfe, algo)
         # Prepare the string
         auth_string = pfe.username + " " + time_str + " " + authenticator.to_string + " " + str(14)

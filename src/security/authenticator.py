@@ -1,16 +1,15 @@
-import hashlib
 from src.utils.byte_util import to_hex_string, put_int4_big_endian
-from .password_file_entry import PasswordFileEntry, Hash, Sha1Hash, Sha256Hash
+from .credentials import Credentials, Hash, Sha1Hash
 
 
 class Authenticator:
 
     def __init__(self,
                  time_t: int,
-                 pfe: PasswordFileEntry,
+                 credentials: Credentials,
                  hash_algo: Hash = Sha1Hash(),
                  ):
-        self.pfe = pfe
+        self.credentials = credentials
         self.time_t = time_t
         self.algorithm = hash_algo.algorithm
         self.__string = None
@@ -19,8 +18,8 @@ class Authenticator:
     @property
     def to_string(self):
         if self.__string is None:
-            authenticator_bytes = self.__make(self.pfe.username.encode('utf-8'),
-                                              self.pfe.sha_password,
+            authenticator_bytes = self.__make(self.credentials.username.encode('utf-8'),
+                                              self.credentials.sha_password,
                                               self.time_t,
                                               self.hash, )
             self.__string = to_hex_string(authenticator_bytes)

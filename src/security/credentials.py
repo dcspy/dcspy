@@ -1,9 +1,4 @@
 import hashlib
-from src.utils import byte_util, properties_util
-
-
-class AuthException(Exception):
-    pass
 
 
 class Hash:
@@ -45,12 +40,6 @@ class Credentials:
 
         if self.username is not None and password is not None and sha_password is None:
             self.set_sha_password(password, True)
-
-    def __str__(self):
-        roles_str = ','.join(self.roles) if self.roles else 'none'
-        password_str = byte_util.to_hex_string(self.__sha_password) if self.__sha_password else '0' * 40
-        prop_str = properties_util.properties_to_string(self.properties)
-        return f'{self.__username}:{roles_str}:{password_str}:{prop_str}'
 
     @property
     def username(self):

@@ -7,7 +7,7 @@ from src.exceptions.server_exceptions import ServerError
 from src.ldds_message import LddsMessage
 from src.logs import write_debug, write_error, write_log
 from src.security import Hash, Sha1Hash, Sha256Hash, Credentials, Authenticator
-from src.utils.byte_util import get_c_string
+from src.utils.byte_util import ByteUtil
 
 
 class BasicClient:
@@ -138,7 +138,7 @@ class LddsClient(BasicClient):
         for hash_algo in [Sha1Hash, Sha256Hash]:
             auth_str = self.__prepare_auth_string(user_name, password, hash_algo())
             res = self.request_dcp_message(msg_id, auth_str)
-            c_string = get_c_string(res, 10)
+            c_string = ByteUtil.extract_string(res, 10)
             write_debug(f"C String: {c_string}")
             # '?' means that server refused the login.
             if len(c_string) > 0 and c_string.startswith("?"):
@@ -250,5 +250,5 @@ class LddsClient(BasicClient):
     def send_goodbye(self):
         msg_id = LddsMessage.id.goodbye
         res = self.request_dcp_message(msg_id, "")
-        c_string = get_c_string(res, 0)
+        c_string = ByteUtil.extract_string(res)
         write_debug(c_string)

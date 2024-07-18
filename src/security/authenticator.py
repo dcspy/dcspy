@@ -1,4 +1,4 @@
-from src.utils.byte_util import to_hex_string, put_int4_big_endian
+from src.utils.byte_util import ByteUtil
 from .credentials import Credentials, Hash, Sha1Hash
 
 
@@ -22,7 +22,7 @@ class Authenticator:
                                               self.credentials.sha_password,
                                               self.time_t,
                                               self.hash, )
-            self.__string = to_hex_string(authenticator_bytes)
+            self.__string = ByteUtil.to_hex_string(authenticator_bytes)
         return self.__string
 
     @staticmethod
@@ -32,8 +32,7 @@ class Authenticator:
                hash_algo: Hash) -> bytes:
         """Create an authenticator."""
         md = hash_algo.new()
-        time_b = bytearray(4)
-        put_int4_big_endian(time_t, time_b, 0)
+        time_b = time_t.to_bytes(length=4, byteorder="big")
 
         md.update(username)
         md.update(sha_password)

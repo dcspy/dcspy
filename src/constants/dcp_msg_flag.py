@@ -44,38 +44,6 @@ class DcpMessageFlag:
     myFlagRev = 0x4a
 
     @staticmethod
-    def is_goes(f):
-        fm = f & DcpMessageFlag.MSG_TYPE_MASK
-        return fm in {
-            DcpMessageFlag.MSG_TYPE_GOES,
-            DcpMessageFlag.MSG_TYPE_GOES_ST,
-            DcpMessageFlag.MSG_TYPE_GOES_RD,
-            DcpMessageFlag.MSG_TYPE_GOES_INT
-        }
-
-    @staticmethod
-    def is_goes_st(f):
-        fm = f & DcpMessageFlag.MSG_TYPE_MASK
-        return fm in {DcpMessageFlag.MSG_TYPE_GOES, DcpMessageFlag.MSG_TYPE_GOES_ST}
-
-    @staticmethod
-    def is_goes_rd(f):
-        fm = f & DcpMessageFlag.MSG_TYPE_MASK
-        return fm in {DcpMessageFlag.MSG_TYPE_GOES, DcpMessageFlag.MSG_TYPE_GOES_RD}
-
-    @staticmethod
-    def is_iridium(f):
-        return (f & DcpMessageFlag.MSG_TYPE_MASK) == DcpMessageFlag.MSG_TYPE_IRIDIUM
-
-    @staticmethod
-    def is_net_dcp(f):
-        return (f & DcpMessageFlag.MSG_TYPE_MASK) == DcpMessageFlag.MSG_TYPE_NETDCP
-
-    @staticmethod
-    def is_dams_nt_dcp(f):
-        return DcpMessageFlag.is_net_dcp(f) and (f & DcpMessageFlag.SRC_MASK) == DcpMessageFlag.SRC_DRGS
-
-    @staticmethod
     def source_value_to_name(source_value):
         if (source_value & DcpMessageFlag.MSG_TYPE_MASK) == DcpMessageFlag.MSG_TYPE_GOES_ST:
             return "GOES_SELFTIMED"
@@ -111,11 +79,3 @@ class DcpMessageFlag:
             "GOES_RANDOM": DcpMessageFlag.MSG_TYPE_GOES_RD
         }
         return name_map.get(nm.upper(), -1)
-
-    @staticmethod
-    def set_flag_rev(flag_rev):
-        DcpMessageFlag.myFlagRev = flag_rev
-
-    @staticmethod
-    def has_accurate_carrier(f):
-        return (f & DcpMessageFlag.HAS_CARRIER_TIMES) != 0 and (f & DcpMessageFlag.CARRIER_TIME_EST) == 0

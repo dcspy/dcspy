@@ -19,11 +19,3 @@ src.security.credentials module
    :members:
    :undoc-members:
    :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: src.security
-   :members:
-   :undoc-members:
-   :show-inheritance:

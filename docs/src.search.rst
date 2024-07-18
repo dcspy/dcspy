@@ -12,10 +12,3 @@ src.search.search\_criteria module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: src.search
-   :members:
-   :undoc-members:
-   :show-inheritance:

@@ -27,11 +27,3 @@ src.constants.lrgs\_error\_codes module
    :members:
    :undoc-members:
    :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: src.constants
-   :members:
-   :undoc-members:
-   :show-inheritance:

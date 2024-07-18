@@ -11,11 +11,3 @@ src.exceptions.server\_exceptions module
    :members:
    :undoc-members:
    :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: src.exceptions
-   :members:
-   :undoc-members:
-   :show-inheritance:

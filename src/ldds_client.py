@@ -138,19 +138,19 @@ class LddsClient(BasicClient):
         for hash_algo in [Sha1Hash, Sha256Hash]:
             auth_str = self.__prepare_auth_string(user_name, password, hash_algo())
             res = self.request_dcp_message(msg_id, auth_str)
-            c_string = ByteUtil.extract_string(res, 10)
-            write_debug(f"C String: {c_string}")
+            error_string = ByteUtil.extract_string(res, 10)
+            write_debug(f"Error String: {error_string}")
             # '?' means that server refused the login.
-            if len(c_string) > 0 and c_string.startswith("?"):
-                server_expn = ServerError(c_string)
-                write_debug(str(server_expn))
+            if len(error_string) > 0 and error_string.startswith("?"):
+                server_error = ServerError.from_error_string(error_string)
+                write_debug(str(server_error))
             else:
                 is_authenticated = True
 
         if is_authenticated:
             write_debug(f"Authenticated user: {user_name}")
         else:
-            raise Exception(f"Could not authenticate for user:{user_name}\n{server_expn}")
+            raise Exception(f"Could not authenticate for user:{user_name}\n{server_error}")
 
     @staticmethod
     def __prepare_auth_string(user_name: str,

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from src.utils.byte_util import ByteUtil
 from src.exceptions.server_exceptions import ServerError
 
 
@@ -77,8 +78,9 @@ class LddsMessage:
             raise ProtocolError(f"Invalid LDDS message header - bad length field = '{message_length_str}'")
 
         message_data = message[header_length:]
-        if message_data.startswith(b"?"):
-            server_error = ServerError(message_data.decode())
+        error_string = ByteUtil.extract_string(message, header_length)
+        if error_string.startswith("?"):
+            server_error = ServerError.from_error_string(error_string)
         else:
             server_error = None
 

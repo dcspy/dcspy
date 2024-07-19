@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Union
 from src.constants import LrgsErrorCode
 from src.exceptions.server_exceptions import ServerError
-from src.ldds_message import LddsMessage
+from src.ldds_message import LddsMessage, LddsMessageIds
 from src.logs import write_debug, write_error, write_log
 from src.security import Hash, Sha1Hash, Sha256Hash, Credentials, Authenticator
 from src.utils.byte_util import ByteUtil
@@ -132,7 +132,7 @@ class LddsClient(BasicClient):
         :param password:
         :return:
         """
-        msg_id = LddsMessage.id.auth_hello
+        msg_id = LddsMessageIds.auth_hello
 
         is_authenticated = False
         for hash_algo in [Sha1Hash, Sha256Hash]:
@@ -196,7 +196,7 @@ class LddsClient(BasicClient):
         :param data:
         :return:
         """
-        msg = LddsMessage.create(message_id=LddsMessage.id.search_criteria,
+        msg = LddsMessage.create(message_id=LddsMessageIds.search_criteria,
                                  message_data=bytearray(50) + data)
 
         write_debug(f"Sending criteria message (filesize = {len(data)} bytes)")
@@ -208,7 +208,7 @@ class LddsClient(BasicClient):
             write_error(f"Error receiving data: {e}")
 
     def request_dcp_block(self):
-        msg_id = LddsMessage.id.dcp_block
+        msg_id = LddsMessageIds.dcp_block
         dcp_messages = bytearray()
         try:
             while True:
@@ -248,7 +248,7 @@ class LddsClient(BasicClient):
         return f"{self.host}:{self.port}"
 
     def send_goodbye(self):
-        msg_id = LddsMessage.id.goodbye
+        msg_id = LddsMessageIds.goodbye
         res = self.request_dcp_message(msg_id, "")
         c_string = ByteUtil.extract_string(res)
         write_debug(c_string)

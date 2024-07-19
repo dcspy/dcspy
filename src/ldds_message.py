@@ -10,6 +10,7 @@ class ProtocolError(Exception):
 
 @dataclass
 class LddsMessageConstants:
+    """Constants related to LDDS messages."""
     valid_header_length: int = 10
     valid_sync_code: bytes = b"FAF0"
     max_data_length: int = 99000
@@ -20,6 +21,9 @@ class LddsMessageConstants:
 
 @dataclass
 class LddsMessageIds:
+    """
+    Ids associated with LDDS messages.
+    """
     hello: str = 'a'
     goodbye: str = 'b'
     status: str = 'c'
@@ -44,9 +48,6 @@ class LddsMessageIds:
 
 
 class LddsMessage:
-    id = LddsMessageIds()
-    constants = LddsMessageConstants()
-
     def __init__(self,
                  message_id: str = None,
                  message_length: int = None,
@@ -70,20 +71,20 @@ class LddsMessage:
     def parse(message: bytes,
               ):
         """
-        Parse bytes into LDDS message :class:`LddsMessage`
+        Parse bytes into :class:`LddsMessage`
 
         :param message:
         :return:
         """
-        header_length = LddsMessage.constants.valid_header_length
+        header_length = LddsMessageConstants.valid_header_length
         assert len(message) >= header_length, f"Invalid LDDS message - length={len(message)}"
         header = message[:header_length]
 
         sync = header[:4]
-        assert sync == LddsMessage.constants.valid_sync_code, f"Invalid LDDS message header - bad sync '{sync}'"
+        assert sync == LddsMessageConstants.valid_sync_code, f"Invalid LDDS message header - bad sync '{sync}'"
 
         message_id = header.decode()[4]
-        assert message_id in LddsMessage.constants.valid_ids, f"Invalid LDDS message header - ID = '{message_id}'"
+        assert message_id in LddsMessageConstants.valid_ids, f"Invalid LDDS message header - ID = '{message_id}'"
 
         message_length_str = header[5:10].decode().replace(" ", "0")
         try:
@@ -125,8 +126,8 @@ class LddsMessage:
         return ldds_message
 
     def __make_header(self):
-        header = bytearray(self.constants.valid_header_length)
-        header[:4] = self.constants.valid_sync_code
+        header = bytearray(LddsMessageConstants.valid_header_length)
+        header[:4] = LddsMessageConstants.valid_sync_code
         header[4] = ord(self.message_id)
 
         message_length_str = f"{self.message_length:05d}"

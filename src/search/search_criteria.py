@@ -83,17 +83,17 @@ class SearchCriteria:
                 if line_ == "" or line_.startswith('#'):
                     continue
 
-                key_word_, value = [x.strip() for x in line_.split(":", 1)]
+                key_word_, data = [x.strip() for x in line_.split(":", 1)]
 
                 match key_word_:
                     case "DRS_SINCE":
-                        self.set_lrgs_since(value)
+                        self.set_lrgs_since(data)
                     case "DRS_UNTIL":
-                        self.set_lrgs_until(value)
+                        self.set_lrgs_until(data)
                     case "DCP_ADDRESS":
-                        self.add_dcp_address(DcpAddress(value))
+                        self.add_dcp_address(DcpAddress(data))
                     case "SOURCE":
-                        self.add_source(DcpMessageFlag.source_name_to_value(value))
+                        self.add_source(DcpMessageFlag[data].value)
                     case _:
                         raise SearchSyntaxException(f"Unrecognized criteria name {key_word_} in '{line_}'")
             return True
@@ -110,9 +110,6 @@ class SearchCriteria:
             self.num_sources += 1
 
     def to_string(self) -> str:
-        return self.to_string_proto()
-
-    def to_string_proto(self, proto_version: int = 1e6) -> str:
         line_separator = SearchCriteriaConstants.line_separator
 
         ret = ["#\n# LRGS Search Criteria\n#\n"]
@@ -125,7 +122,7 @@ class SearchCriteria:
             ret.append(f"DCP_ADDRESS: {dcp_address_.address}{line_separator}")
 
         for i in range(self.num_sources):
-            source_name = DcpMessageFlag.source_value_to_name(self.sources[i])
+            source_name = DcpMessageFlag(self.sources[i]).name
             ret.append(f"SOURCE: {source_name}{line_separator}")
 
         return ''.join(ret)

@@ -1,4 +1,4 @@
-from src.constants.lrgs_error_codes import LrgsErrorCode
+from src.constants import LrgsErrorCode
 from src.logs import write_debug
 
 

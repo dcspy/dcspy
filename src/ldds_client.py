@@ -2,7 +2,7 @@ import socket
 import time
 from datetime import datetime, timezone
 from typing import Union
-from src.constants.lrgs_error_codes import LrgsErrorCode
+from src.constants import LrgsErrorCode
 from src.exceptions.server_exceptions import ServerError
 from src.ldds_message import LddsMessage
 from src.logs import write_debug, write_error, write_log

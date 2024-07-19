@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from src.constants.dcp_msg_flag import DcpMessageFlag
+from src.constants import DcpMessageSource
 
 
 @dataclass
@@ -93,7 +93,7 @@ class SearchCriteria:
                     case "DCP_ADDRESS":
                         self.add_dcp_address(DcpAddress(data))
                     case "SOURCE":
-                        self.add_source(DcpMessageFlag[data].value)
+                        self.add_source(DcpMessageSource[data].value)
                     case _:
                         raise SearchSyntaxException(f"Unrecognized criteria name {key_word_} in '{line_}'")
             return True
@@ -122,7 +122,7 @@ class SearchCriteria:
             ret.append(f"DCP_ADDRESS: {dcp_address_.address}{line_separator}")
 
         for i in range(self.num_sources):
-            source_name = DcpMessageFlag(self.sources[i]).name
+            source_name = DcpMessageSource(self.sources[i]).name
             ret.append(f"SOURCE: {source_name}{line_separator}")
 
         return ''.join(ret)

@@ -8,8 +8,8 @@ class InvalidHashClass(Hash):
         super().__init__("sha384")
 
 
-class TestCore(unittest.TestCase):
-    def test_basic_authenticator_string_sha1(self):
+class TestAuthenticator(unittest.TestCase):
+    def test_to_string_sha1(self):
         username = "test_user"
         password = "test_pass"
         pfe = Credentials(username=username, password=password, hash_algo=Sha1Hash())
@@ -19,7 +19,7 @@ class TestCore(unittest.TestCase):
         expected_auth_str = "C91F758CDED80910C0C4FC11CBEB31395AABB9B4"  # Example expected string
         assert auth_str.to_string == expected_auth_str
 
-    def test_basic_authenticator_string_sha256(self):
+    def test_to_string_sha256(self):
         username = "test_user"
         password = "test_pass"
         pfe = Credentials(username=username, password=password, hash_algo=Sha256Hash())

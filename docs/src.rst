@@ -8,10 +8,7 @@ Subpackages
    :maxdepth: 4
 
    src.constants
-   src.exceptions
-   src.search
    src.security
-   src.utils
 
 Submodules
 ----------
@@ -44,6 +41,14 @@ src.logs module
 ---------------
 
 .. automodule:: src.logs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: src
    :members:
    :undoc-members:
    :show-inheritance:

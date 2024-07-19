@@ -53,6 +53,14 @@ class LddsMessage:
                  message_data: bytes = None,
                  header: bytes = None,
                  ):
+        """
+        Class to hold ldds message information received from server.
+
+        :param message_id:
+        :param message_length:
+        :param message_data:
+        :param header:
+        """
         self.message_id = message_id
         self.message_length = message_length
         self.message_data = message_data
@@ -61,6 +69,12 @@ class LddsMessage:
     @staticmethod
     def parse(message: bytes,
               ):
+        """
+        Parse bytes into LDDS message :class:`LddsMessage`
+
+        :param message:
+        :return:
+        """
         header_length = LddsMessage.constants.valid_header_length
         assert len(message) >= header_length, f"Invalid LDDS message - length={len(message)}"
         header = message[:header_length]
@@ -94,6 +108,13 @@ class LddsMessage:
     def create(message_id: str,
                message_data: bytes = b""
                ):
+        """
+        Create a LDDS message from scratch.
+
+        :param message_id:
+        :param message_data:
+        :return:
+        """
         message_id = message_id
         message_length = len(message_data)
         message_data = message_data

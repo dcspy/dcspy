@@ -136,3 +136,8 @@ class LddsMessage:
 
     def to_bytes(self):
         return self.header + self.message_data
+
+    def __eq__(self, other):
+        return (self.message_length == other.message_length and
+                self.message_id == other.message_id and
+                self.message_data == other.message_data)

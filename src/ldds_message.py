@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from src.utils.byte_util import ByteUtil
-from src.exceptions.server_exceptions import ServerError
+from src.utils import ByteUtil
+from src.server_exceptions import ServerError
 
 
 class ProtocolError(Exception):
@@ -93,16 +93,20 @@ class LddsMessage:
             raise ProtocolError(f"Invalid LDDS message header - bad length field = '{message_length_str}'")
 
         message_data = message[header_length:]
-        error_string = ByteUtil.extract_string(message, header_length)
-        if error_string.startswith("?"):
+        if message_data.startswith(b"?"):
+            error_string = ByteUtil.extract_string(message, header_length)
             server_error = ServerError.from_error_string(error_string)
         else:
             server_error = None
 
-        ldds_message = LddsMessage(message_id=message_id,
-                                   message_length=message_length,
-                                   message_data=message_data,
-                                   header=header)
+        if server_error is None:
+            ldds_message = LddsMessage(message_id=message_id,
+                                       message_length=message_length,
+                                       message_data=message_data,
+                                       header=header)
+        else:
+            ldds_message = None
+
         return ldds_message, server_error
 
     @staticmethod

@@ -1,6 +1,6 @@
 import logging
 from src.logs import write_error
-from src.search.search_criteria import SearchCriteria
+from src.search_criteria import SearchCriteria
 from src.ldds_client import LddsClient
 from src.ldds_message import LddsMessage
 

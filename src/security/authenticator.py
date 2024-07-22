@@ -1,4 +1,4 @@
-from src.utils.byte_util import ByteUtil
+from src.utils import ByteUtil
 from .credentials import Credentials, Hash, Sha1Hash
 
 

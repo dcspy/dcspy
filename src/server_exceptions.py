@@ -41,3 +41,6 @@ class ServerError(Exception):
                 r += f", Errno={self.err_no}"
             r += f") {LrgsErrorCode(self.derr_no).description}"
         return r
+
+    def __eq__(self, other):
+        return self.derr_no == other.derr_no and self.err_no == other.err_no and self.message == other.message

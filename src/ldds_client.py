@@ -3,11 +3,11 @@ import time
 from datetime import datetime, timezone
 from typing import Union
 from src.constants import LrgsErrorCode
-from src.exceptions.server_exceptions import ServerError
+from src.server_exceptions import ServerError
 from src.ldds_message import LddsMessage, LddsMessageIds
 from src.logs import write_debug, write_error, write_log
 from src.security import Hash, Sha1Hash, Sha256Hash, Credentials, Authenticator
-from src.utils.byte_util import ByteUtil
+from src.utils import ByteUtil
 
 
 class BasicClient:
@@ -138,11 +138,8 @@ class LddsClient(BasicClient):
         for hash_algo in [Sha1Hash, Sha256Hash]:
             auth_str = self.__prepare_auth_string(user_name, password, hash_algo())
             res = self.request_dcp_message(msg_id, auth_str)
-            error_string = ByteUtil.extract_string(res, 10)
-            write_debug(f"Error String: {error_string}")
-            # '?' means that server refused the login.
-            if len(error_string) > 0 and error_string.startswith("?"):
-                server_error = ServerError.from_error_string(error_string)
+            _, server_error = LddsMessage.parse(res)
+            if server_error is not None:
                 write_debug(str(server_error))
             else:
                 is_authenticated = True

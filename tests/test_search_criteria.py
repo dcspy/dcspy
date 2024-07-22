@@ -1,6 +1,6 @@
 import os
 import unittest
-from src.search.search_criteria import SearchCriteria, DcpAddress, SearchCriteriaConstants
+from src.search_criteria import SearchCriteria, DcpAddress, SearchCriteriaConstants
 
 
 class TestSearchCriteria(unittest.TestCase):

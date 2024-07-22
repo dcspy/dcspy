@@ -1,5 +1,5 @@
 import unittest
-from src.exceptions.server_exceptions import ServerError
+from src.server_exceptions import ServerError
 
 
 class TestServerExceptions(unittest.TestCase):

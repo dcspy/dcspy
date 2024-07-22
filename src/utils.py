@@ -14,7 +14,10 @@ class ByteUtil:
         :return: The extracted string.
         """
         end = b.find(b'\x00', offset)
-        return b[offset:end].decode()
+        if end == -1:
+            return b[offset:].decode()
+        else:
+            return b[offset:end + 1].decode()
 
     @staticmethod
     def to_hex_string(b: Union[bytes, bytearray]):

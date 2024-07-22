@@ -2,12 +2,12 @@ import socket
 import time
 from datetime import datetime, timezone
 from typing import Union
-from src.constants import LrgsErrorCode
-from src.server_exceptions import ServerError
-from src.ldds_message import LddsMessage, LddsMessageIds
-from src.logs import write_debug, write_error, write_log
-from src.security import Hash, Sha1Hash, Sha256Hash, Credentials, Authenticator
-from src.utils import ByteUtil
+from .constants import LrgsErrorCode
+from .server_exceptions import ServerError
+from .ldds_message import LddsMessage, LddsMessageIds
+from .logs import write_debug, write_error, write_log
+from .security import Hash, Sha1Hash, Sha256Hash, Credentials, Authenticator
+from .utils import ByteUtil
 
 
 class BasicClient:

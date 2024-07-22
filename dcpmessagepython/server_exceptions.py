@@ -1,5 +1,5 @@
-from src.constants import LrgsErrorCode
-from src.logs import write_debug
+from .constants import LrgsErrorCode
+from .logs import write_debug
 
 
 class ServerError(Exception):

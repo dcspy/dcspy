@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from src.constants import DcpMessageSource
+from .constants import DcpMessageSource
 
 
 @dataclass

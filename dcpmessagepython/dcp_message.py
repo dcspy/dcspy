@@ -1,8 +1,8 @@
 import logging
-from src.logs import write_error
-from src.search_criteria import SearchCriteria
-from src.ldds_client import LddsClient
-from src.ldds_message import LddsMessage
+from .logs import write_error
+from .search_criteria import SearchCriteria
+from .ldds_client import LddsClient
+from .ldds_message import LddsMessage
 
 
 class DcpMessage:
@@ -69,7 +69,6 @@ class DcpMessage:
 
         client.send_goodbye()
         client.disconnect()
-        print("\n".join(dcp_messages))
         return dcp_messages
 
     @staticmethod

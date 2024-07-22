@@ -1,12 +1,12 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
-    name="pyopendcs",
+    name="dcpmessagepython",
     version="1.0.0",
-    packages=["src"],
+    packages=find_packages(),
     url="",
     license="",
-    author="",
-    author_email="",
-    description=""
+    author="dcpmessagepython authors",
+    author_email="dbaral@valleywater.org",
+    description="python tool for retrieving data from the NOAA GOES Satellite system."
 )

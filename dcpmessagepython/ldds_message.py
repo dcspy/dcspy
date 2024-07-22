@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from src.utils import ByteUtil
-from src.server_exceptions import ServerError
+from .utils import ByteUtil
+from .server_exceptions import ServerError
 
 
 class ProtocolError(Exception):

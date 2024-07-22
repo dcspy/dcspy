@@ -1,4 +1,4 @@
-from src.utils import ByteUtil
+from dcpmessagepython.utils import ByteUtil
 from .credentials import Credentials, Hash, Sha1Hash
 
 

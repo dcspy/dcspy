@@ -1,6 +1,6 @@
 import unittest
-from src.ldds_message import LddsMessage, LddsMessageIds
-from src.server_exceptions import ServerError
+from dcpmessagepython.ldds_message import LddsMessage, LddsMessageIds
+from dcpmessagepython.server_exceptions import ServerError
 
 
 class TestLddsMessage(unittest.TestCase):

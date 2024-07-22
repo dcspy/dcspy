@@ -1,7 +1,7 @@
-src
-===
+dcpmessagepython
+================
 
 .. toctree::
    :maxdepth: 4
 
-   src
+   dcpmessagepython

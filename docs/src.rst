@@ -45,6 +45,30 @@ src.logs module
    :undoc-members:
    :show-inheritance:
 
+src.search\_criteria module
+---------------------------
+
+.. automodule:: src.search_criteria
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.server\_exceptions module
+-----------------------------
+
+.. automodule:: src.server_exceptions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.utils module
+----------------
+
+.. automodule:: src.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

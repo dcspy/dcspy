@@ -75,14 +75,13 @@ class DcpMessage:
     @staticmethod
     def explode(ldds_message: LddsMessage):
         message = ldds_message.message_data.decode()
-        start = 0
-        message_length = int(message[start + DcpMessage.data_length:start + DcpMessage.header_length])
 
+        start = 0
         messages = []
-        while start + DcpMessage.header_length + message_length < ldds_message.message_length:
+        while start < ldds_message.message_length:
+            message_length = int(message[start + DcpMessage.data_length:start + DcpMessage.header_length])
             message_ = message[start:start + DcpMessage.header_length + message_length]
             messages.append(message_)
             start += DcpMessage.header_length + message_length
-            message_length = int(message[start + DcpMessage.data_length:start + DcpMessage.header_length])
 
         return messages

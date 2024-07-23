@@ -1,5 +1,5 @@
 import json
-from dcpmessagepython.dcp_message import DcpMessage
+from dcspy.dcp_message import DcpMessage
 
 if __name__ == "__main__":
     with open("./credentials.json", "r") as credentials_file:

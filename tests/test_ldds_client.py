@@ -1,5 +1,5 @@
 import unittest
-from dcpmessagepython.ldds_client import LddsClient
+from dcspy.ldds_client import LddsClient
 
 
 class TestBasicClient(unittest.TestCase):

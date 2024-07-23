@@ -1,6 +1,6 @@
 import unittest
-from dcpmessagepython.security import Credentials, Sha1Hash, Sha256Hash, Hash
-from dcpmessagepython.security import Authenticator
+from dcspy.security import Credentials, Sha1Hash, Sha256Hash, Hash
+from dcspy.security import Authenticator
 
 
 class InvalidHashClass(Hash):

@@ -1,6 +1,6 @@
 import os
 import unittest
-from dcpmessagepython.search_criteria import SearchCriteria, DcpAddress, SearchCriteriaConstants
+from dcspy.search_criteria import SearchCriteria, DcpAddress, SearchCriteriaConstants
 
 
 class TestSearchCriteria(unittest.TestCase):

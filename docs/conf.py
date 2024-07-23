@@ -10,9 +10,9 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'dcpmessagepython'
-copyright = '2024, dcpmessagepython Authors'
-author = 'dcpmessagepython Authors'
+project = 'dcspy'
+copyright = '2024, dcspy Authors'
+author = 'dcspy Authors'
 release = '0.0.1'
 
 # -- General configuration ---------------------------------------------------

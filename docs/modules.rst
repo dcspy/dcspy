@@ -1,7 +1,7 @@
-dcpmessagepython
-================
+API Docs
+========
 
 .. toctree::
    :maxdepth: 4
 
-   dcpmessagepython
+   dcspy

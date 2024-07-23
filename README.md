@@ -2,7 +2,7 @@
 
 ## Installation
 
-Download the latest `.tar.gz` from Releases page and install it using `pip`
+Download the latest `.tar.gz` from [releases page](https://github.com/dcspy/dcspy/releases) and install it using `pip`
 
 ```shell
 pip install dcspy-#.#.#.tar.gz 

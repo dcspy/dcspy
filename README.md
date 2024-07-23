@@ -15,7 +15,7 @@ from dcspy import DcpMessage
 
 msg = DcpMessage.get(username="<USERNAME>",
                      password="<PASSWORD>",
-                     search_criteria="<PATH TO SEARCH CRITERIA>",  # see Search Criteria Section below
+                     search_criteria="<PATH TO SEARCH CRITERIA>",
                      host="<HOST>",
                      debug=True)
 print("\n".join(msg))

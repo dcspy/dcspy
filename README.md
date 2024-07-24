@@ -23,28 +23,32 @@ print("\n".join(msg))
 
 ## Search Criteria
 
-Path to Search Criteria file should be passed when getting dcp messages. Search Criteria file can be any text file in
-the following format.
+Path to Search Criteria file should be passed when getting dcp messages. Search Criteria file should be `json`. An
+example is provided belo.
 
-```text
-# EXAMPLE SEARCH CRITERIA
-DRS_SINCE: now - 1 hour
-DRS_UNTIL: now
-SOURCE: GOES_SELFTIMED
-SOURCE: GOES_RANDOM
-DCP_ADDRESS: <dcp address>
-DCP_ADDRESS: <dcp address>
+```json
+{
+  "DRS_SINCE": "now - 1 hour",
+  "DRS_UNTIL": "now",
+  "SOURCE": [
+    "GOES_SELFTIMED",
+    "GOES_RANDOM"
+  ],
+  "DCP_ADDRESS": [
+    "address1",
+    "address2"
+  ]
+}
 ```
 
-- Lines starting with `#` can be used to add comments
-- You can read
-  more [here](https://opendcs-env.readthedocs.io/en/stable/lrgs-userguide.html#search-criteria-file-format). NOTE THAT,
-  only
-  following keywords are supported by `dcspy` at this point:
-    - `DRS_SINCE`
-    - `DRS_UNTIL`
-    - `SOURCE` (can be `GOES_SELFTIMED` or `GOES_RANDOM`, or both)
-    - `DCP_ADDRESS` (can add multiple dcp addresses)
+- NOTE THAT, only following keywords are supported by `dcspy` at this point:
+    - `DRS_SINCE`: string
+    - `DRS_UNTIL`: string
+    - `SOURCE` (can be `GOES_SELFTIMED` or `GOES_RANDOM`, or both) : list of strings
+    - `DCP_ADDRESS` (can add multiple dcp addresses): list of strings
+- All other keywords will be ignored.
+- For more information about search criteria, check opendcs
+  doc [here](https://opendcs-env.readthedocs.io/en/stable/lrgs-userguide.html#search-criteria-file-format).
 
 ## Contributors
 

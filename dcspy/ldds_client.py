@@ -2,6 +2,7 @@ import socket
 import time
 from datetime import datetime, timezone
 from typing import Union
+from .search_criteria import SearchCriteria
 from .constants import LrgsErrorCode
 from .server_exceptions import ServerError
 from .ldds_message import LddsMessage, LddsMessageIds
@@ -186,13 +187,14 @@ class LddsClient(BasicClient):
         return response
 
     def send_search_criteria(self,
-                             data: bytes,
+                             search_criteria: SearchCriteria,
                              ):
         """
 
-        :param data:
+        :param search_criteria:
         :return:
         """
+        data = search_criteria.to_string().encode('utf-8')
         msg = LddsMessage.create(message_id=LddsMessageIds.search_criteria,
                                  message_data=bytearray(50) + data)
 

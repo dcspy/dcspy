@@ -92,30 +92,7 @@ class BasicClient:
         data = self.socket.recv(buffer_size)
         return data
 
-    def receive_all_data(self):
-        """
-        Receive all data from the socket until the end of the stream.
-
-        :return:
-        """
-        if self.socket is None:
-            raise IOError("BasicClient socket closed.")
-        buffer = bytearray()
-        try:
-            while True:
-                chunk = self.socket.recv(1024)  # Read in chunks of 1024 bytes
-                print(chunk)
-                if not chunk:
-                    break
-                buffer.extend(chunk)
-                write_debug(f"Received chunk: {chunk}")
-        except socket.timeout:
-            write_debug("Socket timed out while receiving data.")
-        except Exception as e:
-            write_debug(f"Error receiving data: {e}")
-        return bytes(buffer)
-
-
+   
 class LddsClient(BasicClient):
     def __init__(self,
                  host: str,

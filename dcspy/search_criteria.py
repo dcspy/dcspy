@@ -52,7 +52,7 @@ class SearchCriteria:
 
         lrgs_since, lrgs_until, dcp_addresses, sources = "now - 3 hour", "now", [], []
         try:
-            for line_ind, (key_word_, data) in enumerate(json_data.items()):
+            for key_word_, data in json_data.items():
                 match key_word_:
                     case "DRS_SINCE":
                         lrgs_since = data
@@ -65,7 +65,7 @@ class SearchCriteria:
                         data = list(set(data))
                         sources = [DcpMessageSource[x].value for x in data]
                     case _:
-                        write_debug(f"Unrecognized criteria name {key_word_} in line {line_ind + 1}. Will be ignored.")
+                        write_debug(f"Unrecognized key word {key_word_} will be ignored.")
             search_criteria = SearchCriteria(lrgs_since, lrgs_until, dcp_addresses, sources)
             write_debug(search_criteria.to_string())
             return search_criteria

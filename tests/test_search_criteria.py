@@ -21,6 +21,8 @@ class TestSearchCriteria(unittest.TestCase):
         self.assertEqual(search_criteria.lrgs_until, '2022-01-01 00:02:00')
         self.assertEqual(len(search_criteria.sources), 12)
         self.assertEqual(set(search_criteria.sources), {65536, 131072, 0})
-        for x, y in zip(sorted(search_criteria.dcp_address, key=lambda da: da.address), ["A0806A3E", "A081B07E"]):
+        for x, y in zip(sorted(search_criteria.dcp_address, key=lambda da: da.address),
+                        ["A0806A3E", "A081B07E"],
+                        strict=True):
             self.assertEqual(x, DcpAddress(y))
         os.remove(criteria_file)

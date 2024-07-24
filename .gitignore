@@ -1,9 +1,10 @@
-credentials.json
-.idea/
 __pycache__/
-creds.txt
-venv/
+.idea/
+*.egg-info/     
 *.sc
-*.egg-info/
+credentials.json
+creds.txt       
 dist/
-docs/_build/
+docs/_build/    
+venv/
+test_search_criteria.json

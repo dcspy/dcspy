@@ -56,8 +56,7 @@ class DcpMessage:
 
         try:
             # TODO: look for error scenarios
-            criteria = SearchCriteria()
-            criteria.parse_file(search_criteria)
+            criteria = SearchCriteria.from_file(search_criteria)
             client.send_search_criteria(data=criteria.to_string().encode('utf-8'))
         except Exception as e:
             write_error("Failed to send search criteria. Error: " + str(e))

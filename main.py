@@ -7,7 +7,7 @@ if __name__ == "__main__":
 
     messages = DcpMessage.get(username=credentials["username"],
                               password=credentials["password"],
-                              search_criteria="./test_search_criteria.sc",
+                              search_criteria="./test_search_criteria.json",
                               host="cdadata.wcda.noaa.gov",
                               debug=True)
     print("\n".join(messages))

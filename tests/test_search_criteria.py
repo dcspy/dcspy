@@ -17,9 +17,10 @@ class TestSearchCriteria(unittest.TestCase):
             json.dump(search_criteria_data, f)
 
         search_criteria = SearchCriteria.from_file(criteria_file)
-        assert search_criteria.lrgs_since == '2022-01-01 00:00:00'
-        assert search_criteria.lrgs_until == '2022-01-01 00:02:00'
-        assert len(search_criteria.sources) == 12 and set(search_criteria.sources) == {65536, 131072, 0}
+        self.assertEqual(search_criteria.lrgs_since, '2022-01-01 00:00:00')
+        self.assertEqual(search_criteria.lrgs_until, '2022-01-01 00:02:00')
+        self.assertEqual(len(search_criteria.sources), 12)
+        self.assertEqual(set(search_criteria.sources), {65536, 131072, 0})
         for x, y in zip(sorted(search_criteria.dcp_address, key=lambda da: da.address), ["A0806A3E", "A081B07E"]):
-            assert x == DcpAddress(y)
+            self.assertEqual(x, DcpAddress(y))
         os.remove(criteria_file)

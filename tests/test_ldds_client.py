@@ -8,6 +8,7 @@ class TestBasicClient(unittest.TestCase):
         try:
             client.connect()
         except IOError as err:
-            assert str(err) == "Connection to 10.255.255.1:80 timed out" and isinstance(err, OSError)
+            assert isinstance(err, OSError)
+            self.assertEqual(str(err), "Connection to 10.255.255.1:80 timed out")
 
         client.disconnect()

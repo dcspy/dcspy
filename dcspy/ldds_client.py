@@ -92,7 +92,7 @@ class BasicClient:
         data = self.socket.recv(buffer_size)
         return data
 
-   
+
 class LddsClient(BasicClient):
     def __init__(self,
                  host: str,

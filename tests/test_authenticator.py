@@ -1,9 +1,9 @@
 import unittest
-from dcspy.security import Credentials, Sha1Hash, Sha256Hash, Hash
+from dcspy.security import Credentials, Sha1, Sha256, HashAlgo
 from dcspy.security import Authenticator
 
 
-class InvalidHashClass(Hash):
+class InvalidHashClass(HashAlgo):
     def __init__(self):
         super().__init__("sha384")
 
@@ -12,7 +12,7 @@ class TestAuthenticator(unittest.TestCase):
     def test_to_string_sha1(self):
         username = "test_user"
         password = "test_pass"
-        credentials = Credentials(username=username, password=password, hash_algo=Sha1Hash())
+        credentials = Credentials(username=username, password=password, hash_algo=Sha1())
         time_t = 1650000000  # Example timestamp
         auth_str = Authenticator(time_t, credentials)
 
@@ -22,9 +22,9 @@ class TestAuthenticator(unittest.TestCase):
     def test_to_string_sha256(self):
         username = "test_user"
         password = "test_pass"
-        credentials = Credentials(username=username, password=password, hash_algo=Sha256Hash())
+        credentials = Credentials(username=username, password=password, hash_algo=Sha256())
         time_t = 1650000000  # Example timestamp
-        auth_str = Authenticator(time_t, credentials, Sha256Hash())
+        auth_str = Authenticator(time_t, credentials, Sha256())
 
         expected_auth_str = "CF8923C9535461C01D9F6A893020A189920A2F69C96A3E7A9751A78856C5F498"
         self.assertEqual(auth_str.to_string, expected_auth_str)
@@ -32,7 +32,7 @@ class TestAuthenticator(unittest.TestCase):
     def test_invalid_algorithm(self):
         username = "test_user"
         password = "test_pass"
-        credentials = Credentials(username=username, password=password, hash_algo=Sha1Hash())
+        credentials = Credentials(username=username, password=password, hash_algo=Sha1())
         time_t = 1650000000  # Example timestamp
 
         try:

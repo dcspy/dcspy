@@ -50,7 +50,7 @@ class SearchCriteria:
         with open(file, 'r') as json_file:
             json_data = json.load(json_file)
 
-        lrgs_since, lrgs_until, dcp_addresses, sources = "now - 3 hour", "now", [], []
+        lrgs_since, lrgs_until, dcp_addresses, sources = "last", "now", [], []
         try:
             for key_word_, data in json_data.items():
                 match key_word_:

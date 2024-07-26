@@ -1,5 +1,5 @@
 from dcspy.utils import ByteUtil
-from .credentials import Credentials, Hash, Sha1Hash
+from .credentials import Credentials, HashAlgo, Sha1
 
 
 class Authenticator:
@@ -7,13 +7,13 @@ class Authenticator:
     def __init__(self,
                  time_t: int,
                  credentials: Credentials,
-                 hash_algo: Hash = Sha1Hash(),
+                 hash_algo: HashAlgo = Sha1(),
                  ):
         self.credentials = credentials
         self.time_t = time_t
         self.algorithm = hash_algo.algorithm
         self.__string = None
-        self.hash = hash_algo
+        self.hash_algo = hash_algo
 
     @property
     def to_string(self):
@@ -21,7 +21,7 @@ class Authenticator:
             authenticator_bytes = self.__make(self.credentials.username.encode('utf-8'),
                                               self.credentials.sha_password,
                                               self.time_t,
-                                              self.hash, )
+                                              self.hash_algo, )
             self.__string = ByteUtil.to_hex_string(authenticator_bytes)
         return self.__string
 
@@ -29,7 +29,7 @@ class Authenticator:
     def __make(username: bytes,
                sha_password: bytes,
                time_t: int,
-               hash_algo: Hash) -> bytes:
+               hash_algo: HashAlgo) -> bytes:
         """Create an authenticator."""
         md = hash_algo.new()
         time_b = time_t.to_bytes(length=4, byteorder="big")

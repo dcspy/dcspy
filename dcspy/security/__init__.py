@@ -1,2 +1,2 @@
 from .authenticator import Authenticator
-from .credentials import Credentials, Hash, Sha1Hash, Sha256Hash
+from .credentials import Credentials, HashAlgo, Sha1, Sha256

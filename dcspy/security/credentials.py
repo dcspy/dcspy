@@ -1,7 +1,7 @@
 import hashlib
 
 
-class Hash:
+class HashAlgo:
     def __init__(self, algorithm):
         assert algorithm in {"sha1", "sha256"}, f"{algorithm} is not a supported hash algorithm"
         self.algorithm = algorithm
@@ -10,12 +10,12 @@ class Hash:
         return hashlib.new(self.algorithm)
 
 
-class Sha1Hash(Hash):
+class Sha1(HashAlgo):
     def __init__(self):
         super().__init__("sha1")
 
 
-class Sha256Hash(Hash):
+class Sha256(HashAlgo):
     def __init__(self):
         super().__init__("sha256")
 
@@ -26,10 +26,10 @@ class Credentials:
                  password: str = None,
                  roles: list[str] = None,
                  sha_password: bytes = None,
-                 hash_algo: Hash = Sha1Hash()
+                 hash_algo: HashAlgo = Sha1()
                  ):
         self.__username = username
-        self.hash = hash_algo
+        self.hash_algo = hash_algo
         self.roles = roles if roles else []
         self.__sha_password = sha_password
         self.properties = {}
@@ -57,7 +57,7 @@ class Credentials:
                              username: str,
                              password: str,
                              ) -> bytes:
-        md = self.hash.new()
+        md = self.hash_algo.new()
         md.update(username.encode())
         md.update(password.encode())
         md.update(username.encode())

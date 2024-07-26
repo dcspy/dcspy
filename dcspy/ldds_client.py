@@ -7,7 +7,7 @@ from .constants import LrgsErrorCode
 from .server_exceptions import ServerError
 from .ldds_message import LddsMessage, LddsMessageIds
 from .logs import write_debug, write_error, write_log
-from .security import Hash, Sha1Hash, Sha256Hash, Credentials, Authenticator
+from .security import HashAlgo, Sha1, Sha256, Credentials, Authenticator
 from .utils import ByteUtil
 
 
@@ -113,7 +113,7 @@ class LddsClient(BasicClient):
         msg_id = LddsMessageIds.auth_hello
 
         is_authenticated = False
-        for hash_algo in [Sha1Hash, Sha256Hash]:
+        for hash_algo in [Sha1, Sha256]:
             auth_str = self.__prepare_auth_string(user_name, password, hash_algo())
             res = self.request_dcp_message(msg_id, auth_str)
             _, server_error = LddsMessage.parse(res)
@@ -130,7 +130,7 @@ class LddsClient(BasicClient):
     @staticmethod
     def __prepare_auth_string(user_name: str,
                               password: str,
-                              algo: Hash,
+                              algo: HashAlgo,
                               ):
         now = datetime.now(timezone.utc)
         time_t = int(now.timestamp())  # Convert to Unix timestamp

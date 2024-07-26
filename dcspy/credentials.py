@@ -26,56 +26,54 @@ class Credentials:
     def __init__(self,
                  username: str = None,
                  password: str = None,
-                 hash_algo: HashAlgo = Sha1()
                  ):
         self.__username = username
-        self.hash_algo = hash_algo
-        self.__sha_password = None
-        self.__set_sha_password(password)
+        self.__preliminary_hash = self.get_preliminary_hash(password)
 
     @property
     def username(self):
         return self.__username
 
     @property
-    def sha_password(self):
-        return self.__sha_password
+    def preliminary_hash(self):
+        return self.__preliminary_hash
 
-    def __set_sha_password(self,
-                           password: str,
-                           ):
+    def get_preliminary_hash(self,
+                             password: str,
+                             ) -> bytes:
         username_b = self.username.encode("utf-8")
         password_b = password.encode("utf-8")
-        md = self.hash_algo.new()
+        md = Sha1().new()
         md.update(username_b)
         md.update(password_b)
         md.update(username_b)
         md.update(password_b)
-        self.__sha_password = md.digest()
+        return md.digest()
 
-    def auth_string(self,
-                    time: datetime,
-                    hash_algo: HashAlgo):
-        credentials_s = self._credentials_hash(time, hash_algo)
-        time_str = time.strftime("%y%j%H%M%S")
-
-        auth_string = self.username + " " + time_str + " " + credentials_s + " " + str(14)
-        return auth_string
-
-    def _credentials_hash(self,
-                          time: datetime,
-                          hash_algo: HashAlgo):
+    def get_authenticator_hash(self,
+                               time: datetime,
+                               hash_algo: HashAlgo) -> str:
         time_t = int(time.timestamp())
         time_b = time_t.to_bytes(length=4, byteorder="big")
+        username_b = self.username.encode("utf-8")
 
         """Create an authenticator."""
         md = hash_algo.new()
-        username = self.username.encode("utf-8")
-        md.update(username)
-        md.update(self.sha_password)
+        md.update(username_b)
+        md.update(self.preliminary_hash)
         md.update(time_b)
-        md.update(username)
-        md.update(self.sha_password)
+        md.update(username_b)
+        md.update(self.preliminary_hash)
         md.update(time_b)
         authenticator_bytes = md.digest()
         return ByteUtil.to_hex_string(authenticator_bytes)
+
+    def get_authenticated_hello(self,
+                                time: datetime,
+                                hash_algo: HashAlgo):
+        authenticator_hash = self.get_authenticator_hash(time, hash_algo)
+        time_str = time.strftime("%y%j%H%M%S")
+        protocol_version = 14
+
+        authenticated_hello = f"{self.username} {time_str} {authenticator_hash} {protocol_version}"
+        return authenticated_hello

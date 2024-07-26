@@ -111,13 +111,11 @@ class LddsClient(BasicClient):
         :return:
         """
         msg_id = LddsMessageIds.auth_hello
-        credentials = Credentials(username=user_name,
-                                  password=password,
-                                  hash_algo=Sha1())
+        credentials = Credentials(username=user_name, password=password)
 
         is_authenticated = False
         for hash_algo in [Sha1, Sha256]:
-            auth_str = credentials.auth_string(datetime.now(timezone.utc), hash_algo())
+            auth_str = credentials.get_authenticated_hello(datetime.now(timezone.utc), hash_algo())
             res = self.request_dcp_message(msg_id, auth_str)
             _, server_error = LddsMessage.parse(res)
             if server_error is not None:

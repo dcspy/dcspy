@@ -1,4 +1,6 @@
+from datetime import datetime
 import hashlib
+from dcspy.utils import ByteUtil
 
 
 class HashAlgo:
@@ -63,3 +65,30 @@ class Credentials:
         md.update(username.encode())
         md.update(password.encode())
         return md.digest()
+
+    def auth_string(self,
+                    time: datetime,
+                    hash_algo: HashAlgo):
+        credentials_s = self._credentials_hash(time, hash_algo)
+        time_str = time.strftime("%y%j%H%M%S")
+
+        auth_string = self.username + " " + time_str + " " + credentials_s + " " + str(14)
+        return auth_string
+
+    def _credentials_hash(self,
+                          time: datetime,
+                          hash_algo: HashAlgo):
+        time_t = int(time.timestamp())
+        time_b = time_t.to_bytes(length=4, byteorder="big")
+
+        """Create an authenticator."""
+        md = hash_algo.new()
+        username = self.username.encode("utf-8")
+        md.update(username)
+        md.update(self.sha_password)
+        md.update(time_b)
+        md.update(username)
+        md.update(self.sha_password)
+        md.update(time_b)
+        authenticator_bytes = md.digest()
+        return ByteUtil.to_hex_string(authenticator_bytes)

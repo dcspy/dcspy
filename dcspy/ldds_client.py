@@ -7,7 +7,7 @@ from .constants import LrgsErrorCode
 from .server_exceptions import ServerError
 from .ldds_message import LddsMessage, LddsMessageIds
 from .logs import write_debug, write_error, write_log
-from .security import HashAlgo, Sha1, Sha256, Credentials, Authenticator
+from .credentials import HashAlgo, Sha1, Sha256, Credentials
 from .utils import ByteUtil
 
 
@@ -111,10 +111,13 @@ class LddsClient(BasicClient):
         :return:
         """
         msg_id = LddsMessageIds.auth_hello
+        credentials = Credentials(username=user_name,
+                                  password=password,
+                                  hash_algo=Sha1())
 
         is_authenticated = False
         for hash_algo in [Sha1, Sha256]:
-            auth_str = self.__prepare_auth_string(user_name, password, hash_algo())
+            auth_str = credentials.auth_string(datetime.now(timezone.utc), hash_algo())
             res = self.request_dcp_message(msg_id, auth_str)
             _, server_error = LddsMessage.parse(res)
             if server_error is not None:
@@ -126,21 +129,6 @@ class LddsClient(BasicClient):
             write_debug(f"Authenticated user: {user_name}")
         else:
             raise Exception(f"Could not authenticate for user:{user_name}\n{server_error}")
-
-    @staticmethod
-    def __prepare_auth_string(user_name: str,
-                              password: str,
-                              algo: HashAlgo,
-                              ):
-        now = datetime.now(timezone.utc)
-        time_t = int(now.timestamp())  # Convert to Unix timestamp
-        time_str = now.strftime("%y%j%H%M%S")
-
-        credentials = Credentials(username=user_name, password=password)
-        authenticator = Authenticator(time_t, credentials, algo)
-        # Prepare the string
-        auth_string = credentials.username + " " + time_str + " " + authenticator.to_string + " " + str(14)
-        return auth_string
 
     def request_dcp_message(self,
                             msg_id,

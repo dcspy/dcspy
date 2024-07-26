@@ -3,7 +3,7 @@ import time
 from datetime import datetime, timezone
 from typing import Union
 from .search_criteria import SearchCriteria
-from .constants import LrgsErrorCode
+from .constants import ServerErrorCode
 from .server_exceptions import ServerError
 from .ldds_message import LddsMessage, LddsMessageIds
 from .logs import write_debug, write_error, write_log
@@ -179,8 +179,8 @@ class LddsClient(BasicClient):
                 response = self.request_dcp_message(msg_id)
                 server_message, server_error = LddsMessage.parse(response)
                 if server_error is not None:
-                    if server_error.derr_no in (LrgsErrorCode.DUNTIL.value, LrgsErrorCode.DUNTILDRS.value):
-                        write_log(LrgsErrorCode.DUNTIL.description)
+                    if server_error.server_code_no in (ServerErrorCode.DUNTIL.value, ServerErrorCode.DUNTILDRS.value):
+                        write_log(ServerErrorCode.DUNTIL.description)
                         break
                     else:
                         raise server_error
@@ -201,7 +201,7 @@ class LddsClient(BasicClient):
 
     @staticmethod
     def handle_server_error(server_error: ServerError):
-        if server_error.derr_no in (LrgsErrorCode.DUNTIL, LrgsErrorCode.DUNTILDRS):
+        if server_error.server_code_no in (ServerErrorCode.DUNTIL, ServerErrorCode.DUNTILDRS):
             write_log("Until time reached. Normal termination")
             return None
         else:

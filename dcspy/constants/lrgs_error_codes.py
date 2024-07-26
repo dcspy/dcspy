@@ -2,7 +2,7 @@ from enum import Enum, verify, UNIQUE
 
 
 @verify(UNIQUE)
-class LrgsErrorCode(Enum):
+class ServerErrorCode(Enum):
     DSUCCESS = 0, "Success."
     DNOFLAG = 1, "Could not find start of message flag."
     DDUMMY = 2, "Message found (and loaded) but it's a dummy."

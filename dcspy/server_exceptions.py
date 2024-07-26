@@ -1,21 +1,21 @@
-from .constants import LrgsErrorCode
+from .constants import ServerErrorCode
 from .logs import write_debug
 
 
 class ServerError(Exception):
     def __init__(self,
                  message: str,
-                 derr_no: int = 0,
-                 err_no: int = 0):
+                 server_code_no: int = 0,
+                 system_code_no: int = 0):
         """
 
         :param message:
-        :param derr_no:
-        :param err_no:
+        :param server_code_no:
+        :param system_code_no:
         """
         super().__init__(message)
-        self.derr_no = derr_no
-        self.err_no = err_no
+        self.server_code_no = server_code_no
+        self.system_code_no = system_code_no
         self.message = message
 
     @staticmethod
@@ -35,12 +35,12 @@ class ServerError(Exception):
 
     def __str__(self):
         r = f"Server Error: {self.message}"
-        if self.derr_no != 0:
-            r += f" ({LrgsErrorCode(self.derr_no).name}-{self.derr_no}"
-            if self.err_no != 0:
-                r += f", Errno={self.err_no}"
-            r += f") {LrgsErrorCode(self.derr_no).description}"
+        if self.server_code_no != 0:
+            r += f" ({ServerErrorCode(self.server_code_no).name}-{self.server_code_no}"
+            if self.system_code_no != 0:
+                r += f", Errno={self.system_code_no}"
+            r += f") {ServerErrorCode(self.server_code_no).description}"
         return r
 
     def __eq__(self, other):
-        return self.derr_no == other.derr_no and self.err_no == other.err_no and self.message == other.message
+        return self.server_code_no == other.server_code_no and self.system_code_no == other.system_code_no and self.message == other.message

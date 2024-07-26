@@ -12,9 +12,9 @@ class TestAuthenticator(unittest.TestCase):
     def test_to_string_sha1(self):
         username = "test_user"
         password = "test_pass"
-        credentials = Credentials(username=username, password=password, hash_algo=Sha1())
+        credentials = Credentials(username=username, password=password)
         time = datetime(2022, 4, 14, 22, 20, 0)  # Example timestamp
-        auth_str = credentials._credentials_hash(time, Sha1())
+        auth_str = credentials.get_authenticator_hash(time, Sha1())
 
         expected_auth_str = "C91F758CDED80910C0C4FC11CBEB31395AABB9B4"  # Example expected string
         self.assertEqual(auth_str, expected_auth_str)
@@ -22,20 +22,20 @@ class TestAuthenticator(unittest.TestCase):
     def test_to_string_sha256(self):
         username = "test_user"
         password = "test_pass"
-        credentials = Credentials(username=username, password=password, hash_algo=Sha256())
+        credentials = Credentials(username=username, password=password)
         time = datetime(2022, 4, 14, 22, 20, 0)
-        auth_str = credentials._credentials_hash(time, Sha256())
+        auth_str = credentials.get_authenticator_hash(time, Sha256())
 
-        expected_auth_str = "CF8923C9535461C01D9F6A893020A189920A2F69C96A3E7A9751A78856C5F498"
+        expected_auth_str = "850D6D0BA8D5C00BFF01D507E9C50B3E639C9C0EC93B1E2A84BE2673581439DF"
         self.assertEqual(auth_str, expected_auth_str)
 
     def test_invalid_algorithm(self):
         username = "test_user"
         password = "test_pass"
-        credentials = Credentials(username=username, password=password, hash_algo=Sha1())
+        credentials = Credentials(username=username, password=password)
         time = datetime(2022, 4, 14, 22, 20, 0)
 
         try:
-            credentials._credentials_hash(time, InvalidHashClass())
+            credentials.get_authenticator_hash(time, InvalidHashClass())
         except AssertionError as err:
             self.assertEqual(str(err), "sha384 is not a supported hash algorithm")

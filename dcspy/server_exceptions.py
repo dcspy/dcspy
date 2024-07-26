@@ -30,8 +30,9 @@ class ServerError(Exception):
             write_debug(f"{error_string} is not a server error")
             return
 
-        derr_no, err_no, message = [x.strip() for x in error_string[1:].split(",")]
-        return ServerError(message, int(derr_no), int(err_no))
+        split_error_string = error_string[1:].split(",", maxsplit=2)
+        sever_code_no, system_code_no, message = [x.strip() for x in split_error_string]
+        return ServerError(message, int(sever_code_no), int(system_code_no))
 
     def __str__(self):
         r = f"Server Error: {self.message}"

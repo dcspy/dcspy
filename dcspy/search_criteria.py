@@ -67,7 +67,7 @@ class SearchCriteria:
                     case _:
                         write_debug(f"Unrecognized key word {key_word_} will be ignored.")
             search_criteria = SearchCriteria(lrgs_since, lrgs_until, dcp_addresses, sources)
-            write_debug(search_criteria.to_string())
+            write_debug(str(search_criteria))
             return search_criteria
         except Exception as ex:
             raise Exception(f"Unexpected exception parsing search-criteria: {ex}")
@@ -79,7 +79,7 @@ class SearchCriteria:
             self.sources[self.num_sources] = source
             self.num_sources += 1
 
-    def to_string(self) -> str:
+    def __str__(self) -> str:
         line_separator = os.linesep
 
         ret = ["#\n# LRGS Search Criteria\n#\n"]
@@ -96,6 +96,9 @@ class SearchCriteria:
             ret.append(f"SOURCE: {source_name}{line_separator}")
 
         return ''.join(ret)
+
+    def __bytes__(self):
+        return self.__str__().encode('utf-8')
 
     def __eq__(self, other) -> bool:
         if self.lrgs_since != other.lrgs_since or self.lrgs_until != other.lrgs_until:

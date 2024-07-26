@@ -136,10 +136,10 @@ class LddsClient(BasicClient):
         time_t = int(now.timestamp())  # Convert to Unix timestamp
         time_str = now.strftime("%y%j%H%M%S")
 
-        pfe = Credentials(username=user_name, password=password)
-        authenticator = Authenticator(time_t, pfe, algo)
+        credentials = Credentials(username=user_name, password=password)
+        authenticator = Authenticator(time_t, credentials, algo)
         # Prepare the string
-        auth_string = pfe.username + " " + time_str + " " + authenticator.to_string + " " + str(14)
+        auth_string = credentials.username + " " + time_str + " " + authenticator.to_string + " " + str(14)
         return auth_string
 
     def request_dcp_message(self,
@@ -171,7 +171,7 @@ class LddsClient(BasicClient):
         :param search_criteria:
         :return:
         """
-        data = search_criteria.to_string().encode('utf-8')
+        data = bytes(search_criteria)
         msg = LddsMessage.create(message_id=LddsMessageIds.search_criteria,
                                  message_data=bytearray(50) + data)
 

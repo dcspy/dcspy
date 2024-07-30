@@ -35,13 +35,15 @@ class ServerError(Exception):
         return ServerError(message, int(sever_code_no), int(system_code_no))
 
     def __str__(self):
-        r = f"Server Error: {self.message}"
-        if self.server_code_no != 0:
-            r += f" ({ServerErrorCode(self.server_code_no).name}-{self.server_code_no}"
-            if self.system_code_no != 0:
-                r += f", Errno={self.system_code_no}"
-            r += f") {ServerErrorCode(self.server_code_no).description}"
+        if self.system_code_no == 0 and self.server_code_no == 0:
+            return "No Server Error"
+
+        server_error_code = ServerErrorCode(self.server_code_no)
+        r = f"System Code #{self.system_code_no}; "
+        r += f"Server Code #{server_error_code.value} - {self.message} ({server_error_code.description})"
         return r
 
     def __eq__(self, other):
-        return self.server_code_no == other.server_code_no and self.system_code_no == other.system_code_no and self.message == other.message
+        return (self.server_code_no == other.server_code_no and
+                self.system_code_no == other.system_code_no and
+                self.message == other.message)

@@ -72,7 +72,7 @@ class SearchCriteria:
                         data = list(set(data))
                         sources = [DcpMessageSource[x].value for x in data]
                     case _:
-                        write_debug(f"Unrecognized key word {key_word_} will be ignored.")
+                        write_debug(f"Unrecognized key word {key_word_} in Search Criteria. Will be ignored.")
             search_criteria = SearchCriteria(lrgs_since, lrgs_until, dcp_addresses, sources)
             write_debug(str(search_criteria))
             return search_criteria

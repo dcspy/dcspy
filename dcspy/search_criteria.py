@@ -1,8 +1,15 @@
 import os
 import json
 from dataclasses import dataclass
-from .constants import DcpMessageSource
+from enum import Enum, verify, UNIQUE
 from .logs import write_debug
+
+
+@verify(UNIQUE)
+class DcpMessageSource(Enum):
+    GOES = 0x00000000
+    GOES_SELFTIMED = 0x00010000
+    GOES_RANDOM = 0x00020000
 
 
 @dataclass

@@ -1,4 +1,4 @@
-from .constants import ServerErrorCode
+from .lrgs_error_codes import ServerErrorCode
 from .logs import write_debug
 
 

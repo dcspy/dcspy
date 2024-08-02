@@ -6,6 +6,17 @@ from .ldds_message import LddsMessage
 
 
 class DcpMessage:
+    """
+    Class for handling DCP messages, including fetching and processing them
+    from a remote server using the LDDS protocol.
+
+    Attributes:
+        max_data_length (int): Maximum allowed data length for a DCP message.
+        max_failure_codes (int): Maximum number of failure codes allowed.
+        data_length (int): Standard length of the data field in a DCP message.
+        header_length (int): Standard length of the header in a DCP message.
+        badCodes (str): Set of codes representing bad or failed message statuses.
+    """
     max_data_length = 99800
     max_failure_codes = 8
     data_length = 32
@@ -22,32 +33,41 @@ class DcpMessage:
             debug: bool = False
             ):
         """
+        Fetches DCP messages from a server based on provided search criteria.
 
-        :param username:
-        :param password:
-        :param search_criteria:
-        :param host:
-        :param port:
-        :param timeout:
-        :param debug:
-        :return:
+        This method handles the complete process of connecting to the server,
+        authenticating, sending search criteria, retrieving DCP messages, and
+        finally disconnecting.
+
+        :param username: Username for server authentication.
+        :param password: Password for server authentication.
+        :param search_criteria: File path to search criteria or search criteria as a string.
+        :param host: Hostname or IP address of the server.
+        :param port: Port number for server connection (default: 16003).
+        :param timeout: Connection timeout in seconds (default: 30 seconds).
+        :param debug: If True, enables debug logging; otherwise, sets logging to INFO level.
+        :return: List of DCP messages retrieved from the server.
         """
+        # Set logging level based on the debug parameter
         if debug:
             logging.basicConfig(level=logging.DEBUG)
         else:
             logging.basicConfig(level=logging.INFO)
 
+        # Use default values for port and timeout if not provided
         port = port if port is not None else 16003
         timeout = timeout if timeout is not None else 30
         client = LddsClient(host=host, port=port, timeout=timeout)
 
         try:
+            # Attempt to connect to the server
             client.connect()
         except Exception as e:
             write_error("Failed to connect to server. Error: " + str(e))
             return
 
         try:
+            # Attempt to authenticate the user
             client.authenticate_user(username, password)
         except Exception as e:
             write_error("Failed to authenticate user. Error: " + str(e))
@@ -55,6 +75,7 @@ class DcpMessage:
             return
 
         try:
+            # Load search criteria and send it to the server
             criteria = SearchCriteria.from_file(search_criteria)
             client.send_search_criteria(criteria)
         except Exception as e:
@@ -62,21 +83,31 @@ class DcpMessage:
             client.disconnect()
             return
 
+        # Retrieve the DCP block and process it into individual messages
         dcp_block = client.request_dcp_block()
         dcp_messages = DcpMessage.explode(dcp_block)
 
+        # Send a goodbye message and disconnect from the server
         client.send_goodbye()
         client.disconnect()
         return dcp_messages
 
     @staticmethod
     def explode(ldds_message: LddsMessage):
+        """
+        Splits a single LDDS message containing multiple DCP messages into individual messages.
+
+        :param ldds_message: An instance of LddsMessage containing the data to be split.
+        :return: A list of individual DCP messages.
+        """
         message = ldds_message.message_data.decode()
 
         start = 0
         messages = []
         while start < ldds_message.message_length:
+            # Extract the length of the current message
             message_length = int(message[start + DcpMessage.data_length:start + DcpMessage.header_length])
+            # Extract the entire message using the determined length
             message_ = message[start:start + DcpMessage.header_length + message_length]
             messages.append(message_)
             start += DcpMessage.header_length + message_length

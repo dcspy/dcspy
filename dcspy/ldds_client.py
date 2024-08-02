@@ -13,18 +13,21 @@ from .utils import ByteUtil
 
 class BasicClient:
     """
-     Class for basic socket connection.
+    A class for managing basic socket connections to a remote server.
 
-     :param host: host name or ip address
-     :param port: port number
-     :param timeout: socket timeout in seconds
-     """
+    :param host: The hostname or IP address of the remote server.
+    :param port: The port number to connect to on the remote server.
+    :param timeout: The timeout duration for the socket connection in seconds.
+    """
 
-    def __init__(self,
-                 host: str,
-                 port: int,
-                 timeout: Union[float, int]):
+    def __init__(self, host: str, port: int, timeout: Union[float, int]):
+        """
+        Initialize the BasicClient with the provided host, port, and timeout.
 
+        :param host: The hostname or IP address of the remote server.
+        :param port: The port number to connect to on the remote server.
+        :param timeout: The timeout duration for the socket connection in seconds.
+        """
         self.host = host
         self.port = port
         self.timeout = timeout
@@ -33,8 +36,10 @@ class BasicClient:
 
     def connect(self):
         """
-        Create a socket connection.
+        Establish a socket connection to the server using the provided host and port.
+        Sets the socket to blocking mode and applies the specified timeout.
 
+        :raises IOError: If the connection attempt times out or fails for any reason.
         :return: None
         """
         try:
@@ -53,9 +58,9 @@ class BasicClient:
 
     def disconnect(self):
         """
-        Close the socket.
+        Close the established socket connection.
 
-        :return:
+        :return: None
         """
         try:
             if self.socket:
@@ -66,14 +71,13 @@ class BasicClient:
         finally:
             self.socket = None
 
-    def send_data(self,
-                  data: bytes,
-                  ):
+    def send_data(self, data: bytes):
         """
-        Send data via established socket.
+        Send data over the established socket connection.
 
-        :param data: bytes data to send
-        :return:
+        :param data: The byte data to send over the socket.
+        :raises IOError: If the socket is not connected.
+        :return: None
         """
         if self.socket is None:
             raise IOError("BasicClient socket closed.")
@@ -83,10 +87,10 @@ class BasicClient:
         """
         Receive data from the socket.
 
-        :param buffer_size:
-        :return:
+        :param buffer_size: The size of the buffer to use when receiving data.
+        :return: The received byte data.
+        :raises IOError: If the socket is not connected.
         """
-
         if self.socket is None:
             raise IOError("BasicClient socket closed.")
         data = self.socket.recv(buffer_size)
@@ -94,21 +98,29 @@ class BasicClient:
 
 
 class LddsClient(BasicClient):
-    def __init__(self,
-                 host: str,
-                 port: int,
-                 timeout: Union[float, int]):
+    """
+    A client for communicating with an LDDS (Low Data Rate Demodulation System) server.
+    Inherits from BasicClient and adds LDDS-specific functionality.
+    """
+
+    def __init__(self, host: str, port: int, timeout: Union[float, int]):
+        """
+        Initialize the LddsClient with the provided host, port, and timeout.
+
+        :param host: The hostname or IP address of the LDDS server.
+        :param port: The port number to connect to on the LDDS server.
+        :param timeout: The timeout duration for the socket connection in seconds.
+        """
         super().__init__(host=host, port=port, timeout=timeout)
 
-    def authenticate_user(self,
-                          user_name: str = "user",
-                          password: str = "pass",
-                          ):
+    def authenticate_user(self, user_name: str = "user", password: str = "pass"):
         """
+        Authenticate a user with the LDDS server using the provided username and password.
 
-        :param user_name:
-        :param password:
-        :return:
+        :param user_name: The username to authenticate with.
+        :param password: The password to authenticate with.
+        :raises Exception: If authentication fails.
+        :return: None
         """
         msg_id = LddsMessageIds.auth_hello
         credentials = Credentials(username=user_name, password=password)
@@ -128,15 +140,13 @@ class LddsClient(BasicClient):
         else:
             raise Exception(f"Could not authenticate for user:{user_name}\n{server_error}")
 
-    def request_dcp_message(self,
-                            msg_id,
-                            msg_data: str = "",
-                            ) -> bytes:
+    def request_dcp_message(self, msg_id, msg_data: str = "") -> bytes:
         """
+        Request a DCP (Data Collection Platform) message from the LDDS server.
 
-        :param msg_id:
-        :param msg_data:
-        :return:
+        :param msg_id: The ID of the message to request.
+        :param msg_data: The data to include in the message request.
+        :return: The response from the server as bytes.
         """
         response = b""
         message = LddsMessage.create(message_id=msg_id, message_data=msg_data.encode())
@@ -149,13 +159,12 @@ class LddsClient(BasicClient):
             write_error(f"Error receiving data: {e}")
         return response
 
-    def send_search_criteria(self,
-                             search_criteria: SearchCriteria,
-                             ):
+    def send_search_criteria(self, search_criteria: SearchCriteria):
         """
+        Send search criteria to the LDDS server.
 
-        :param search_criteria:
-        :return:
+        :param search_criteria: The search criteria to send.
+        :return: None
         """
         data = bytes(search_criteria)
         msg = LddsMessage.create(message_id=LddsMessageIds.search_criteria,
@@ -170,6 +179,11 @@ class LddsClient(BasicClient):
             write_error(f"Error receiving data: {e}")
 
     def request_dcp_block(self):
+        """
+        Request a block of DCP messages from the LDDS server.
+
+        :return: The received DCP block as an LddsMessage object.
+        """
         msg_id = LddsMessageIds.dcp_block
         dcp_messages = bytearray()
         try:
@@ -189,6 +203,13 @@ class LddsClient(BasicClient):
             raise err
 
     def handle_timeout(self, end_time):
+        """
+        Handle a timeout scenario by checking if the current time exceeds the end time.
+
+        :param end_time: The time when the operation is expected to end.
+        :raises TimeoutError: If no message is received before the timeout.
+        :return: None
+        """
         if time.time() > end_time:
             s = f"No message received in {self.timeout} seconds, exiting."
             write_error(s)
@@ -199,6 +220,12 @@ class LddsClient(BasicClient):
 
     @staticmethod
     def handle_server_error(server_error: ServerError):
+        """
+        Handle a server error by checking the error code and logging the appropriate message.
+
+        :param server_error: The server error to handle.
+        :return: None if the error is handled; otherwise, the server error is returned.
+        """
         if server_error.server_code_no in (ServerErrorCode.DUNTIL, ServerErrorCode.DUNTILDRS):
             write_log("Until time reached. Normal termination")
             return None
@@ -207,9 +234,19 @@ class LddsClient(BasicClient):
 
     @property
     def name(self):
+        """
+        Return a string representation of the LDDS client's host and port.
+
+        :return: The host and port as a string.
+        """
         return f"{self.host}:{self.port}"
 
     def send_goodbye(self):
+        """
+        Send a goodbye message to the LDDS server to terminate the session.
+
+        :return: None
+        """
         msg_id = LddsMessageIds.goodbye
         res = self.request_dcp_message(msg_id, "")
         c_string = ByteUtil.extract_string(res)

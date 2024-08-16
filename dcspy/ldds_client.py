@@ -83,7 +83,7 @@ class BasicClient:
             raise IOError("BasicClient socket closed.")
         self.socket.sendall(data)
 
-    def receive_data(self, buffer_size: int = 1024 * 1024 * 1024) -> bytes:
+    def receive_data(self, buffer_size: int = 1024) -> bytes:
         """
         Receive data from the socket.
 

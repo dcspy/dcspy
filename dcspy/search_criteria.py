@@ -7,6 +7,14 @@ from .logs import write_debug
 
 @verify(UNIQUE)
 class DcpMessageSource(Enum):
+    """
+    Enumeration for DCP message sources with unique values.
+
+    Attributes:
+        GOES: Represents a standard GOES message source.
+        GOES_SELFTIMED: Represents a self-timed GOES message source.
+        GOES_RANDOM: Represents a random GOES message source.
+    """
     GOES = 0x00000000
     GOES_SELFTIMED = 0x00010000
     GOES_RANDOM = 0x00020000
@@ -14,30 +22,67 @@ class DcpMessageSource(Enum):
 
 @dataclass
 class SearchCriteriaConstants:
+    """
+    Constants used in SearchCriteria.
+
+    Attributes:
+        max_sources: The maximum number of sources that can be added to the search criteria.
+    """
     max_sources: int = 12
 
 
 class DcpAddress:
+    """
+    Class representing a DCP address.
+
+    Attributes:
+        address (str): The DCP address, which must be 8 characters long.
+    """
+
     def __init__(self, address: str):
+        """
+        Initialize the DcpAddress with a given address.
+
+        :param address: The address string, which must be exactly 8 characters long.
+        :raises AssertionError: If the address is not 8 characters long.
+        """
         assert len(address) == 8
         self.address = address
 
     def __eq__(self, other):
+        """
+        Compare two DcpAddress objects for equality.
+
+        :param other: The other DcpAddress object to compare with.
+        :return: True if the addresses are the same, False otherwise.
+        """
         return self.address == other.address
 
 
 class SearchCriteria:
+    """
+    Class for representing LRGS search criteria.
+
+    Attributes:
+        lrgs_since (str): The starting time for the LRGS search.
+        lrgs_until (str): The ending time for the LRGS search.
+        dcp_address (list[DcpAddress]): A list of DCP addresses to include in the search.
+        sources (list[int]): A list of source identifiers for the search criteria.
+        num_sources (int): The number of sources currently in the search criteria.
+    """
+
     def __init__(self,
                  lrgs_since: str,
                  lrgs_until: str,
                  dcp_address: list[DcpAddress],
                  sources: list[int]):
         """
+        Initialize the SearchCriteria with provided parameters.
 
-        :param lrgs_since:
-        :param lrgs_until:
-        :param dcp_address:
-        :param sources:
+        :param lrgs_since: The start time for the search criteria.
+        :param lrgs_until: The end time for the search criteria.
+        :param dcp_address: A list of DCP addresses to search for.
+        :param sources: A list of sources to include in the search.
         """
         self.lrgs_since = lrgs_since
         self.lrgs_until = lrgs_until
@@ -50,9 +95,11 @@ class SearchCriteria:
     @staticmethod
     def from_file(file: str):
         """
+        Create a SearchCriteria object from a JSON file.
 
-        :param file:
-        :return:
+        :param file: Path to the JSON file containing search criteria.
+        :return: A SearchCriteria object.
+        :raises Exception: If there is an issue parsing the JSON file.
         """
         with open(file, 'r') as json_file:
             json_data = json.load(json_file)
@@ -80,6 +127,11 @@ class SearchCriteria:
             raise Exception(f"Unexpected exception parsing search-criteria: {ex}")
 
     def __add_source(self, source: int):
+        """
+        Add a source to the search criteria if not already present.
+
+        :param source: The source identifier to add.
+        """
         if self.num_sources >= SearchCriteriaConstants.max_sources:
             return
         if source not in self.sources:
@@ -87,6 +139,11 @@ class SearchCriteria:
             self.num_sources += 1
 
     def __str__(self) -> str:
+        """
+        Convert the SearchCriteria to a string format for easy readability.
+
+        :return: A string representation of the search criteria.
+        """
         line_separator = os.linesep
 
         ret = ["#\n# LRGS Search Criteria\n#\n"]
@@ -105,9 +162,20 @@ class SearchCriteria:
         return ''.join(ret)
 
     def __bytes__(self):
+        """
+        Convert the SearchCriteria object to a bytes format for network transmission.
+
+        :return: A bytes representation of the search criteria.
+        """
         return self.__str__().encode('utf-8')
 
     def __eq__(self, other) -> bool:
+        """
+        Compare two SearchCriteria objects for equality.
+
+        :param other: The other SearchCriteria object to compare with.
+        :return: True if the criteria are the same, False otherwise.
+        """
         if self.lrgs_since != other.lrgs_since or self.lrgs_until != other.lrgs_until:
             return False
 

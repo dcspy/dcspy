@@ -55,12 +55,12 @@ class LddsMessage:
                  header: bytes = None,
                  ):
         """
-        Class to hold ldds message information received from server.
+        Initialize a LddsMessage instance.
 
-        :param message_id:
-        :param message_length:
-        :param message_data:
-        :param header:
+        :param message_id: The ID of the message.
+        :param message_length: The length of the message data.
+        :param message_data: The message data in bytes.
+        :param header: The header of the message in bytes.
         """
         self.message_id = message_id
         self.message_length = message_length
@@ -68,13 +68,13 @@ class LddsMessage:
         self.header = header
 
     @staticmethod
-    def parse(message: bytes,
-              ):
+    def parse(message: bytes):
         """
-        Parse bytes into :class:`LddsMessage`
+        Parse bytes into an LddsMessage instance.
 
-        :param message:
-        :return:
+        :param message: The message in bytes to parse.
+        :return: A tuple containing an LddsMessage instance and a ServerError if any.
+        :raises ProtocolError: If there is an issue with the message header.
         """
         header_length = LddsMessageConstants.valid_header_length
         assert len(message) >= header_length, f"Invalid LDDS message - length={len(message)}"
@@ -110,19 +110,15 @@ class LddsMessage:
         return ldds_message, server_error
 
     @staticmethod
-    def create(message_id: str,
-               message_data: bytes = b""
-               ):
+    def create(message_id: str, message_data: bytes = b""):
         """
         Create a LDDS message from scratch.
 
-        :param message_id:
-        :param message_data:
-        :return:
+        :param message_id: The ID of the message.
+        :param message_data: The data of the message in bytes.
+        :return: A new LddsMessage instance.
         """
-        message_id = message_id
         message_length = len(message_data)
-        message_data = message_data
         ldds_message = LddsMessage(message_id=message_id,
                                    message_length=message_length,
                                    message_data=message_data)
@@ -130,6 +126,9 @@ class LddsMessage:
         return ldds_message
 
     def __make_header(self):
+        """
+        Generate the header for the LDDS message.
+        """
         header = bytearray(LddsMessageConstants.valid_header_length)
         header[:4] = LddsMessageConstants.valid_sync_code
         header[4] = ord(self.message_id)
@@ -139,9 +138,20 @@ class LddsMessage:
         self.header = header
 
     def to_bytes(self):
+        """
+        Convert the LDDS message to bytes.
+
+        :return: The message in bytes.
+        """
         return self.header + self.message_data
 
     def __eq__(self, other):
+        """
+        Check equality with another LddsMessage instance.
+
+        :param other: Another LddsMessage instance to compare with.
+        :return: True if equal, False otherwise.
+        """
         return (self.message_length == other.message_length and
                 self.message_id == other.message_id and
                 self.message_data == other.message_data)

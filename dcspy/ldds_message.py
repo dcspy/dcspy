@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from .logs import write_debug, write_error
 from .utils import ByteUtil
 from .server_exceptions import ServerError
 
@@ -68,36 +69,45 @@ class LddsMessage:
         self.header = header
 
     @staticmethod
-    def parse(message: bytes):
+    def parse(message: bytes,
+              check_header: bool = True,
+              ):
         """
         Parse bytes into an LddsMessage instance.
 
         :param message: The message in bytes to parse.
+        :param check_header: bool
         :return: A tuple containing an LddsMessage instance and a ServerError if any.
         :raises ProtocolError: If there is an issue with the message header.
         """
-        header_length = LddsMessageConstants.valid_header_length
-        assert len(message) >= header_length, f"Invalid LDDS message - length={len(message)}"
-        header = message[:header_length]
+        header, message_id, server_error = None, None, None
+        if LddsMessage.has_sync_code(message):
+            check_header = True
 
-        sync = header[:4]
-        assert sync == LddsMessageConstants.valid_sync_code, f"Invalid LDDS message header - bad sync '{sync}'"
+        if check_header:
+            header_length = LddsMessageConstants.valid_header_length
+            assert len(message) >= header_length, f"Invalid LDDS message - length={len(message)}"
+            header = message[:header_length]
 
-        message_id = header.decode()[4]
-        assert message_id in LddsMessageConstants.valid_ids, f"Invalid LDDS message header - ID = '{message_id}'"
+            sync = header[:4]
+            assert sync == LddsMessageConstants.valid_sync_code, f"Invalid LDDS message header - bad sync '{sync}'"
 
-        message_length_str = header[5:10].decode().replace(" ", "0")
-        try:
-            message_length = int(message_length_str)
-        except ValueError:
-            raise ProtocolError(f"Invalid LDDS message header - bad length field = '{message_length_str}'")
+            message_id = header.decode()[4]
+            assert message_id in LddsMessageConstants.valid_ids, f"Invalid LDDS message header - ID = '{message_id}'"
+
+            message_length_str = header[5:10].decode().replace(" ", "0")
+            try:
+                message_length = int(message_length_str)
+            except ValueError:
+                raise ProtocolError(f"Invalid LDDS message header - bad length field = '{message_length_str}'")
+        else:
+            header_length = 0
+            message_length = len(message)
 
         message_data = message[header_length:]
-        if message_data.startswith(b"?"):
+        if check_header and message_data.startswith(b"?"):
             error_string = ByteUtil.extract_string(message, header_length)
             server_error = ServerError.from_error_string(error_string)
-        else:
-            server_error = None
 
         if server_error is None:
             ldds_message = LddsMessage(message_id=message_id,
@@ -110,7 +120,9 @@ class LddsMessage:
         return ldds_message, server_error
 
     @staticmethod
-    def create(message_id: str, message_data: bytes = b""):
+    def create(message_id: str,
+               message_data: bytes = b""
+               ):
         """
         Create a LDDS message from scratch.
 
@@ -155,3 +167,17 @@ class LddsMessage:
         return (self.message_length == other.message_length and
                 self.message_id == other.message_id and
                 self.message_data == other.message_data)
+
+    @staticmethod
+    def has_sync_code(message):
+        has_sync_code = False
+        if message.startswith(LddsMessageConstants.valid_sync_code):
+            try:
+                message_length_str = message[5:10].decode().replace(" ", "0")
+                message_length = int(message_length_str)
+                if isinstance(message_length, int):
+                    has_sync_code = True
+            except Exception as err:
+                write_error("Can't determine if message has sync code")
+                raise err
+        return has_sync_code

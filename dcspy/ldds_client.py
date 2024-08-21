@@ -20,7 +20,10 @@ class BasicClient:
     :param timeout: The timeout duration for the socket connection in seconds.
     """
 
-    def __init__(self, host: str, port: int, timeout: Union[float, int]):
+    def __init__(self,
+                 host: str,
+                 port: int,
+                 timeout: Union[float, int]):
         """
         Initialize the BasicClient with the provided host, port, and timeout.
 
@@ -71,7 +74,9 @@ class BasicClient:
         finally:
             self.socket = None
 
-    def send_data(self, data: bytes):
+    def send_data(self,
+                  data: bytes,
+                  ):
         """
         Send data over the established socket connection.
 
@@ -103,7 +108,10 @@ class LddsClient(BasicClient):
     Inherits from BasicClient and adds LDDS-specific functionality.
     """
 
-    def __init__(self, host: str, port: int, timeout: Union[float, int]):
+    def __init__(self,
+                 host: str,
+                 port: int,
+                 timeout: Union[float, int]):
         """
         Initialize the LddsClient with the provided host, port, and timeout.
 
@@ -113,7 +121,10 @@ class LddsClient(BasicClient):
         """
         super().__init__(host=host, port=port, timeout=timeout)
 
-    def authenticate_user(self, user_name: str = "user", password: str = "pass"):
+    def authenticate_user(self,
+                          user_name: str = "user",
+                          password: str = "pass",
+                          ):
         """
         Authenticate a user with the LDDS server using the provided username and password.
 
@@ -128,6 +139,7 @@ class LddsClient(BasicClient):
         is_authenticated = False
         for hash_algo in [Sha1, Sha256]:
             auth_str = credentials.get_authenticated_hello(datetime.now(timezone.utc), hash_algo())
+            write_debug(auth_str)
             res = self.request_dcp_message(msg_id, auth_str)
             _, server_error = LddsMessage.parse(res)
             if server_error is not None:
@@ -140,7 +152,10 @@ class LddsClient(BasicClient):
         else:
             raise Exception(f"Could not authenticate for user:{user_name}\n{server_error}")
 
-    def request_dcp_message(self, msg_id, msg_data: str = "") -> bytes:
+    def request_dcp_message(self,
+                            msg_id,
+                            msg_data: str = "",
+                            ) -> bytes:
         """
         Request a DCP (Data Collection Platform) message from the LDDS server.
 
@@ -159,7 +174,9 @@ class LddsClient(BasicClient):
             write_error(f"Error receiving data: {e}")
         return response
 
-    def send_search_criteria(self, search_criteria: SearchCriteria):
+    def send_search_criteria(self,
+                             search_criteria: SearchCriteria,
+                             ):
         """
         Send search criteria to the LDDS server.
 
@@ -186,10 +203,15 @@ class LddsClient(BasicClient):
         """
         msg_id = LddsMessageIds.dcp_block
         dcp_messages = bytearray()
+        first_block = True
         try:
             while True:
                 response = self.request_dcp_message(msg_id)
-                server_message, server_error = LddsMessage.parse(response)
+                if first_block:
+                    server_message, server_error = LddsMessage.parse(response)
+                    first_block = False
+                else:
+                    server_message, server_error = LddsMessage.parse(response, check_header=False)
                 if server_error is not None:
                     if server_error.server_code_no in (ServerErrorCode.DUNTIL.value, ServerErrorCode.DUNTILDRS.value):
                         write_log(ServerErrorCode.DUNTIL.description)

@@ -1,4 +1,3 @@
-import logging
 from .logs import write_error
 from .search_criteria import SearchCriteria
 from .ldds_client import LddsClient
@@ -30,7 +29,6 @@ class DcpMessage:
             host: str,
             port: int = None,
             timeout: int = None,
-            debug: bool = False
             ):
         """
         Fetches DCP messages from a server based on provided search criteria.
@@ -48,11 +46,6 @@ class DcpMessage:
         :param debug: If True, enables debug logging; otherwise, sets logging to INFO level.
         :return: List of DCP messages retrieved from the server.
         """
-        # Set logging level based on the debug parameter
-        if debug:
-            logging.basicConfig(level=logging.DEBUG)
-        else:
-            logging.basicConfig(level=logging.INFO)
 
         # Use default values for port and timeout if not provided
         port = port if port is not None else 16003

@@ -1,16 +1,10 @@
 import logging
 
+logger = logging.getLogger()
+
 
 def write_log(msg: str, level: str = "INFO", stack_level: int = 2) -> None:
     level = level.upper()
-
-    logger = logging.getLogger()
-    logger.handlers.clear()
-
-    logging.basicConfig(format="[%(levelname)s]\t%(asctime)s\t[%(pathname)s]\t[%(lineno)s]\t\"%(message)s\"",
-                        datefmt="%Y-%m-%dT%H:%M:%S%Z",
-                        )
-
     match level:
         case "INFO":
             logger.info(msg, stacklevel=stack_level)
@@ -22,6 +16,10 @@ def write_log(msg: str, level: str = "INFO", stack_level: int = 2) -> None:
             logger.warning(msg, stacklevel=stack_level)
         case _:
             logger.error(f"{level} is invalid level for logging")
+
+
+def write_info(msg: str):
+    write_log(msg, "INFO", stack_level=3)
 
 
 def write_debug(msg: str):

@@ -24,7 +24,7 @@ print("\n".join(msg))
 ## Search Criteria
 
 Path to Search Criteria file should be passed when getting dcp messages. Search Criteria file should be `json`. An
-example is provided belo.
+example is provided below.
 
 ```json
 {

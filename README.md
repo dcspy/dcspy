@@ -50,6 +50,10 @@ example is provided below.
 - For more information about search criteria, check opendcs
   doc [here](https://opendcs-env.readthedocs.io/en/stable/lrgs-userguide.html#search-criteria-file-format).
 
+## Reference
+
+[DCP Data Service (DDS) Protocol Specification](https://dcs1.noaa.gov/LRGS/DCP-Data-Service-14.pdf), Version 14
+
 ## Contributors
 
 - [Manoj Kotteda](https://github.com/orgs/dcspy/people/manojkotteda)

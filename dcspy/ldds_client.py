@@ -5,7 +5,7 @@ from typing import Union
 from .search_criteria import SearchCriteria
 from .lrgs_error_codes import ServerErrorCode
 from .server_exceptions import ServerError
-from .ldds_message import LddsMessage, LddsMessageIds
+from .ldds_message import LddsMessage, LddsMessageIds, LddsMessageConstants
 from .logs import write_debug, write_error, write_log
 from .credentials import Sha1, Sha256, Credentials
 from .utils import ByteUtil
@@ -48,8 +48,9 @@ class BasicClient:
         try:
             write_debug(f"Attempting to connect to {self.host}:{self.port}")
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            if self.timeout is not None:
-                self.socket.settimeout(self.timeout)
+            # setting a timeout is pointless since setblocking(true) below sets the timeout to None
+            # if self.timeout is not None:
+            #     self.socket.settimeout(self.timeout)
             self.socket.connect((self.host, self.port))
             self.socket.setblocking(True)  # Set the socket to blocking mode
             self.last_connect_attempt = time.time()
@@ -98,8 +99,7 @@ class BasicClient:
         """
         if self.socket is None:
             raise IOError("BasicClient socket closed.")
-        data = self.socket.recv(buffer_size)
-        return data
+        return self.socket.recv(buffer_size)
 
 
 class LddsClient(BasicClient):
@@ -139,9 +139,9 @@ class LddsClient(BasicClient):
         is_authenticated = False
         for hash_algo in [Sha1, Sha256]:
             auth_str = credentials.get_authenticated_hello(datetime.now(timezone.utc), hash_algo())
-            write_debug(auth_str)
+            # write_debug(auth_str)
             res = self.request_dcp_message(msg_id, auth_str)
-            _, server_error = LddsMessage.parse(res)
+            server_error = res.check_error()
             if server_error is not None:
                 write_debug(str(server_error))
             else:
@@ -161,18 +161,45 @@ class LddsClient(BasicClient):
 
         :param msg_id: The ID of the message to request.
         :param msg_data: The data to include in the message request.
-        :return: The response from the server as bytes.
+        :return: LddsMessage.
         """
-        response = b""
+        # write_debug(f"Requesting {msg_id}")
         message = LddsMessage.create(message_id=msg_id, message_data=msg_data.encode())
         bytes_to_send = message.to_bytes()
         self.send_data(bytes_to_send)
 
+        # receive and parse the header
         try:
-            response = self.receive_data()
+            rx_data = bytearray()
+            response = None
+            while response is None:
+                bb = self.receive_data()
+                rx_data.extend(bb)
+                if len(rx_data) >= LddsMessageConstants.valid_header_length:
+                    response = LddsMessage.parse_header(rx_data)
+                    rx_data = rx_data[LddsMessageConstants.valid_header_length:]
+                elif len(bb) == 0:
+                    # We got nothing, prob socket closed?
+                    write_debug(f"OOPS: socket receive returned nothing, got {rx_data} so far")
+                    raise Exception("Server closed socket unexpectedly")
+
+            # receive message body
+            message_length = response.message_length
+            while len(rx_data) < message_length:
+                rx_data.extend(self.receive_data())
+
+            if len(rx_data) != message_length:
+                # TODO: should this be a fatal error?
+                write_debug(f"OOPS: expected {message_length} bytes but got {len(rx_data)}")
+
+            response.message_data = rx_data[:message_length]
+            return response
+            
         except Exception as e:
-            write_error(f"Error receiving data: {e}")
-        return response
+            write_error(f"Error receiving DCP message: {e}")
+
+
+        return
 
     def send_search_criteria(self,
                              search_criteria: SearchCriteria,
@@ -203,22 +230,18 @@ class LddsClient(BasicClient):
         """
         msg_id = LddsMessageIds.dcp_block
         dcp_messages = bytearray()
-        first_block = True
         try:
             while True:
                 response = self.request_dcp_message(msg_id)
-                if first_block:
-                    server_message, server_error = LddsMessage.parse(response)
-                    first_block = False
-                else:
-                    server_message, server_error = LddsMessage.parse(response, check_header=False)
+                # check for server error message
+                server_error = response.check_error()
                 if server_error is not None:
                     if server_error.server_code_no in (ServerErrorCode.DUNTIL.value, ServerErrorCode.DUNTILDRS.value):
                         write_log(ServerErrorCode.DUNTIL.description)
                         break
                     else:
                         raise server_error
-                dcp_messages += server_message.message_data
+                dcp_messages += response.message_data
             return LddsMessage.create(msg_id, dcp_messages)
         except Exception as err:
             write_debug(f"Error receiving data: {err}")
@@ -271,5 +294,3 @@ class LddsClient(BasicClient):
         """
         msg_id = LddsMessageIds.goodbye
         res = self.request_dcp_message(msg_id, "")
-        c_string = ByteUtil.extract_string(res)
-        write_debug(c_string)

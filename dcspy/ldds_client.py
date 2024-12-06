@@ -48,11 +48,10 @@ class BasicClient:
         try:
             write_debug(f"Attempting to connect to {self.host}:{self.port}")
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # setting a timeout is pointless since setblocking(true) below sets the timeout to None
-            # if self.timeout is not None:
-            #     self.socket.settimeout(self.timeout)
+            if self.timeout is not None:
+                self.socket.settimeout(self.timeout)
             self.socket.connect((self.host, self.port))
-            self.socket.setblocking(True)  # Set the socket to blocking mode
+            self.socket.settimeout(60)
             self.last_connect_attempt = time.time()
             write_debug(f"Successfully connected to {self.host}:{self.port}")
         except socket.timeout as ex:
@@ -94,12 +93,15 @@ class BasicClient:
         Receive data from the socket.
 
         :param buffer_size: The size of the buffer to use when receiving data.
-        :return: The received byte data.
+        :return: The received byte data, guaranteed to contain at least one byte
         :raises IOError: If the socket is not connected.
         """
         if self.socket is None:
             raise IOError("BasicClient socket closed.")
-        return self.socket.recv(buffer_size)
+        r = self.socket.recv(buffer_size)
+        if len(r) == 0:
+            raise IOError("BasicClient socket closed.")
+        return r
 
 
 class LddsClient(BasicClient):
@@ -173,15 +175,10 @@ class LddsClient(BasicClient):
             rx_data = bytearray()
             response = None
             while response is None:
-                bb = self.receive_data()
-                rx_data.extend(bb)
+                rx_data.extend(self.receive_data())
                 if len(rx_data) >= LddsMessageConstants.valid_header_length:
                     response = LddsMessage.parse_header(rx_data)
                     rx_data = rx_data[LddsMessageConstants.valid_header_length:]
-                elif len(bb) == 0:
-                    # We got nothing, prob socket closed?
-                    write_debug(f"OOPS: socket receive returned nothing, got {rx_data} so far")
-                    raise Exception("Server closed socket unexpectedly")
 
             # receive message body
             message_length = response.message_length
@@ -197,7 +194,7 @@ class LddsClient(BasicClient):
             
         except Exception as e:
             write_error(f"Error receiving DCP message: {e}")
-
+            raise
 
         return
 

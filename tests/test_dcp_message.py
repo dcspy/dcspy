@@ -11,7 +11,7 @@ class TestDcpMessage(unittest.TestCase):
                         b"A081B07E24204144853G30-0HN096WUP00012`BST@KY@KYg ")
         ldds_message = LddsMessage.create(LddsMessageIds.dcp_block, message_data)
         dcp_messages = DcpMessage.explode(ldds_message)
-        self.assertEqual(dcp_messages, ["A081B07E24204153353G30-0NN096WUB00012`BST@KZ@KZh ",
-                                        "A081B07E24204151853G30-0HN096WUB00012`BST@KZ@KYh ",
-                                        "A081B07E24204150353G29-0HN096WUP00012`BST@KY@KYg ",
-                                        "A081B07E24204144853G30-0HN096WUP00012`BST@KY@KYg "])
+        self.assertEqual(dcp_messages, [DcpMessage.parse("A081B07E24204153353G30-0NN096WUB00012`BST@KZ@KZh "),
+                                        DcpMessage.parse("A081B07E24204151853G30-0HN096WUB00012`BST@KZ@KYh "),
+                                        DcpMessage.parse("A081B07E24204150353G29-0HN096WUP00012`BST@KY@KYg "),
+                                        DcpMessage.parse("A081B07E24204144853G30-0HN096WUP00012`BST@KY@KYg ")])

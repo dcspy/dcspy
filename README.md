@@ -50,6 +50,12 @@ example is provided below.
 - For more information about search criteria, check opendcs
   doc [here](https://opendcs-env.readthedocs.io/en/stable/lrgs-userguide.html#search-criteria-file-format).
 
+## Tests
+
+Run tests using: `python -m unittest discover`
+
+See also: https://www.pythontutorial.net/python-unit-testing/python-run-unittest/
+
 ## Reference
 
 [DCP Data Service (DDS) Protocol Specification](https://dcs1.noaa.gov/LRGS/DCP-Data-Service-14.pdf), Version 14

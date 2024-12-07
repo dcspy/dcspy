@@ -71,7 +71,7 @@ class LddsMessage:
     @staticmethod
     def parse_header(message: bytes):
         """
-        Parse bytes into an LddsMessage instance.
+        Parse bytes into an LddsMessage instance without the data.
 
         :param message: The message header in bytes to parse, must be at least valid_header_length long
         :return: LddsMessage instance.
@@ -80,15 +80,18 @@ class LddsMessage:
         header, message_id, server_error = None, None, None
 
         header_length = LddsMessageConstants.valid_header_length
-        assert len(message) >= header_length, f"Invalid LDDS message - length={len(message)}"
+        if len(message) < header_length:
+            raise ProtocolError(f"Invalid LDDS message - length={len(message)}")
         header = message[:header_length]
 
         sync_len = len(LddsMessageConstants.valid_sync_code)
         sync = header[:sync_len]
-        assert sync == LddsMessageConstants.valid_sync_code, f"Invalid LDDS message header - bad sync '{sync}'"
+        if sync != LddsMessageConstants.valid_sync_code:
+            raise ProtocolError(f"Invalid LDDS message header - bad sync '{sync}'")
 
         message_id = header.decode()[sync_len]
-        assert message_id in LddsMessageConstants.valid_ids, f"Invalid LDDS message header - ID = '{message_id}'"
+        if not (message_id in LddsMessageConstants.valid_ids):
+            raise ProtocolError(f"Invalid LDDS message header - ID = '{message_id}'")
 
         message_length_str = header[(sync_len+1):].decode().replace(" ", "0")
         try:

@@ -19,4 +19,5 @@ if __name__ == "__main__":
                               search_criteria="./test_search_criteria.json",
                               host="cdadata.wcda.noaa.gov",
                               )
-    print("\n".join(messages))
+    for m in messages:
+        print(f"[{m}]")

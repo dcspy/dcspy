@@ -51,7 +51,7 @@ class BasicClient:
             if self.timeout is not None:
                 self.socket.settimeout(self.timeout)
             self.socket.connect((self.host, self.port))
-            self.socket.settimeout(60)
+            self.socket.settimeout(60) # TODO: should this also be a param?
             self.last_connect_attempt = time.time()
             write_debug(f"Successfully connected to {self.host}:{self.port}")
         except socket.timeout as ex:
@@ -94,14 +94,14 @@ class BasicClient:
 
         :param buffer_size: The size of the buffer to use when receiving data.
         :return: The received byte data, guaranteed to contain at least one byte
-        :raises IOError: If the socket is not connected.
+        :raises IOError: If the socket is not connected or EOF is reached.
         """
         if self.socket is None:
             raise IOError("BasicClient socket closed.")
-        r = self.socket.recv(buffer_size)
-        if len(r) == 0:
+        data = self.socket.recv(buffer_size)
+        if len(data) == 0:
             raise IOError("BasicClient socket closed.")
-        return r
+        return data
 
 
 class LddsClient(BasicClient):
@@ -170,8 +170,8 @@ class LddsClient(BasicClient):
         bytes_to_send = message.to_bytes()
         self.send_data(bytes_to_send)
 
-        # receive and parse the header
         try:
+            # receive and parse the header
             rx_data = bytearray()
             response = None
             while response is None:
@@ -194,7 +194,6 @@ class LddsClient(BasicClient):
             
         except Exception as e:
             write_error(f"Error receiving DCP message: {e}")
-            raise
 
         return
 

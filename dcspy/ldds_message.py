@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from .logs import write_debug, write_error
+from .logs import write_error
 from .utils import ByteUtil
 from .server_exceptions import ServerError
 

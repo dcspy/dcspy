@@ -141,8 +141,8 @@ class LddsMessage:
         """
         Generate the header for the LDDS message.
         """
-        header = bytearray(LddsMessageConstants.valid_header_length)
-        header[:4] = LddsMessageConstants.valid_sync_code
+        header = bytearray(LddsMessageConstants.VALID_HEADER_LENGTH)
+        header[:4] = LddsMessageConstants.VALID_SYNC_CODE
         header[4] = ord(self.message_id)
 
         message_length_str = f"{self.message_length:05d}"
@@ -171,7 +171,7 @@ class LddsMessage:
     @staticmethod
     def has_sync_code(message):
         has_sync_code = False
-        if message.startswith(LddsMessageConstants.valid_sync_code):
+        if message.startswith(LddsMessageConstants.VALID_SYNC_CODE):
             try:
                 message_length_str = message[5:10].decode().replace(" ", "0")
                 message_length = int(message_length_str)

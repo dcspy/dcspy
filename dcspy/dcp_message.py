@@ -1,7 +1,7 @@
 from .logs import write_error
 from .search_criteria import SearchCriteria
 from .ldds_client import LddsClient
-from .ldds_message import LddsMessage
+from .ldds_message import LddsMessage, LddsMessageConstants
 
 
 class DcpMessage:
@@ -86,23 +86,26 @@ class DcpMessage:
         return dcp_messages
 
     @staticmethod
-    def explode(ldds_message: LddsMessage):
+    def explode(message_block: bytes):
         """
         Splits a single LDDS message containing multiple DCP messages into individual messages.
 
-        :param ldds_message: An instance of LddsMessage containing the data to be split.
+        :param message_block: message block (concatenated response from the server).
         :return: A list of individual DCP messages.
         """
-        message = ldds_message.message_data.decode()
+        sync_code = LddsMessageConstants.VALID_SYNC_CODE
+        ldds_messages = [LddsMessage.parse(sync_code + x) for x in message_block.split(sync_code) if x != b""]
+        dcp_messages = []
+        for ind, (ldds_message, server_error) in enumerate(ldds_messages):
+            if server_error is None:
+                message = ldds_message.message_data.decode()
+                start = 0
+                while start < ldds_message.message_length:
+                    # Extract the length of the current message
+                    message_length = int(message[(start + DcpMessage.data_length):(start + DcpMessage.header_length)])
+                    # Extract the entire message using the determined length
+                    message_ = message[start:(start + DcpMessage.header_length + message_length)]
+                    dcp_messages.append(message_)
+                    start += DcpMessage.header_length + message_length
 
-        start = 0
-        messages = []
-        while start < ldds_message.message_length:
-            # Extract the length of the current message
-            message_length = int(message[start + DcpMessage.data_length:start + DcpMessage.header_length])
-            # Extract the entire message using the determined length
-            message_ = message[start:start + DcpMessage.header_length + message_length]
-            messages.append(message_)
-            start += DcpMessage.header_length + message_length
-
-        return messages
+        return dcp_messages

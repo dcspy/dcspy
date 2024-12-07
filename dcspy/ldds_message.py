@@ -81,52 +81,42 @@ class LddsMessage:
 
     @staticmethod
     def parse(message: bytes,
-              check_header: bool = True,
               ):
         """
         Parse bytes into an LddsMessage instance.
 
         :param message: The message in bytes to parse.
-        :param check_header: bool
         :return: A tuple containing an LddsMessage instance and a ServerError if any.
         :raises ProtocolError: If there is an issue with the message header.
         """
-        header, message_id, server_error = None, None, None
-        if LddsMessage.has_sync_code(message):
-            check_header = True
+        header_length = LddsMessageConstants.VALID_HEADER_LENGTH
+        assert len(message) >= header_length, f"Invalid LDDS message - length={len(message)}"
 
-        if check_header:
-            header_length = LddsMessageConstants.valid_header_length
-            assert len(message) >= header_length, f"Invalid LDDS message - length={len(message)}"
-            header = message[:header_length]
+        server_error = LddsMessage.check_error(message)
+        if server_error is not None:
+            ldds_message = None
+            return ldds_message, server_error
 
-            sync = header[:4]
-            assert sync == LddsMessageConstants.valid_sync_code, f"Invalid LDDS message header - bad sync '{sync}'"
+        header = message[:header_length]
+        sync = header[:4]
+        assert sync == LddsMessageConstants.VALID_SYNC_CODE, f"Invalid LDDS message header - bad sync '{sync}'"
 
-            message_id = header.decode()[4]
-            assert message_id in LddsMessageConstants.valid_ids, f"Invalid LDDS message header - ID = '{message_id}'"
+        message_id = header.decode()[4]
+        assert message_id in LddsMessageConstants.VALID_IDS, f"Invalid LDDS message header - ID = '{message_id}'"
 
-            message_length_str = header[5:10].decode().replace(" ", "0")
-            try:
-                message_length = int(message_length_str)
-            except ValueError:
-                raise ProtocolError(f"Invalid LDDS message header - bad length field = '{message_length_str}'")
-        else:
-            header_length = 0
-            message_length = len(message)
+        message_length_str = header[5:10].decode().replace(" ", "0")
+        try:
+            message_length = int(message_length_str)
+        except ValueError:
+            raise ProtocolError(f"Invalid LDDS message header - bad length field = '{message_length_str}'")
 
         message_data = message[header_length:]
-        if check_header and message_data.startswith(b"?"):
-            error_string = ByteUtil.extract_string(message, header_length)
-            server_error = ServerError.from_error_string(error_string)
+        assert len(message_data) == message_length, f"Inconsistent LDDS message length"
 
-        if server_error is None:
-            ldds_message = LddsMessage(message_id=message_id,
-                                       message_length=message_length,
-                                       message_data=message_data,
-                                       header=header)
-        else:
-            ldds_message = None
+        ldds_message = LddsMessage(message_id=message_id,
+                                   message_length=message_length,
+                                   message_data=message_data,
+                                   header=header)
 
         return ldds_message, server_error
 

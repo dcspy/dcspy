@@ -5,7 +5,7 @@ from typing import Union
 from .search_criteria import SearchCriteria
 from .lrgs_error_codes import ServerErrorCode
 from .server_exceptions import ServerError
-from .ldds_message import LddsMessage, LddsMessageIds
+from .ldds_message import LddsMessage, LddsMessageIds, LddsMessageConstants
 from .logs import write_debug, write_error, write_log
 from .credentials import Sha1, Sha256, Credentials
 from .utils import ByteUtil
@@ -203,56 +203,23 @@ class LddsClient(BasicClient):
         """
         msg_id = LddsMessageIds.dcp_block
         dcp_messages = bytearray()
-        first_block = True
         try:
             while True:
                 response = self.request_dcp_message(msg_id)
-                if first_block:
-                    server_message, server_error = LddsMessage.parse(response)
-                    first_block = False
-                else:
-                    server_message, server_error = LddsMessage.parse(response, check_header=False)
-                if server_error is not None:
-                    if server_error.server_code_no in (ServerErrorCode.DUNTIL.value, ServerErrorCode.DUNTILDRS.value):
-                        write_log(ServerErrorCode.DUNTIL.description)
-                        break
-                    else:
-                        raise server_error
-                dcp_messages += server_message.message_data
-            return LddsMessage.create(msg_id, dcp_messages)
+                if response.startswith(LddsMessageConstants.VALID_SYNC_CODE):
+                    server_error = LddsMessage.check_error(response)
+                    if server_error is not None:
+                        if server_error.server_code_no in (
+                                ServerErrorCode.DUNTIL.value, ServerErrorCode.DUNTILDRS.value):
+                            write_log(ServerErrorCode.DUNTIL.description)
+                            break
+                        else:
+                            raise server_error
+                dcp_messages += response
+            return dcp_messages
         except Exception as err:
             write_debug(f"Error receiving data: {err}")
             raise err
-
-    def handle_timeout(self, end_time):
-        """
-        Handle a timeout scenario by checking if the current time exceeds the end time.
-
-        :param end_time: The time when the operation is expected to end.
-        :raises TimeoutError: If no message is received before the timeout.
-        :return: None
-        """
-        if time.time() > end_time:
-            s = f"No message received in {self.timeout} seconds, exiting."
-            write_error(s)
-            raise TimeoutError(s)
-        else:
-            write_error("Server caught up to present, pausing...")
-            time.sleep(1)
-
-    @staticmethod
-    def handle_server_error(server_error: ServerError):
-        """
-        Handle a server error by checking the error code and logging the appropriate message.
-
-        :param server_error: The server error to handle.
-        :return: None if the error is handled; otherwise, the server error is returned.
-        """
-        if server_error.server_code_no in (ServerErrorCode.DUNTIL, ServerErrorCode.DUNTILDRS):
-            write_log("Until time reached. Normal termination")
-            return None
-        else:
-            return server_error
 
     @property
     def name(self):

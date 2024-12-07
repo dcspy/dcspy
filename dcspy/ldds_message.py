@@ -69,6 +69,17 @@ class LddsMessage:
         self.header = header
 
     @staticmethod
+    def check_error(message: bytes,
+                    ):
+        header_length = LddsMessageConstants.VALID_HEADER_LENGTH
+        message_data = message[header_length:]
+        if message_data.startswith(b"?"):
+            error_string = ByteUtil.extract_string(message, header_length)
+            server_error = ServerError.from_error_string(error_string)
+            return server_error
+        return None
+
+    @staticmethod
     def parse(message: bytes,
               check_header: bool = True,
               ):

@@ -12,10 +12,10 @@ class ProtocolError(Exception):
 @dataclass
 class LddsMessageConstants:
     """Constants related to LDDS messages."""
-    valid_header_length: int = 10
-    valid_sync_code: bytes = b"FAF0"
-    max_data_length: int = 99000
-    valid_ids: frozenset[str] = frozenset(("a", "b", "c", "d", "e", "f", "g",
+    VALID_HEADER_LENGTH: int = 10
+    VALID_SYNC_CODE: bytes = b"FAF0"
+    MAX_DATA_LENGTH: int = 99000
+    VALID_IDS: frozenset[str] = frozenset(("a", "b", "c", "d", "e", "f", "g",
                                            "h", "i", "j", "k", "l", "m", "n",
                                            "o", "p", "q", "r", "s", "t", "u"))
 

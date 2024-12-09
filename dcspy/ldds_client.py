@@ -238,7 +238,7 @@ class LddsClient(BasicClient):
 
         :return: None
         """
-        msg_id = LddsMessageIds.goodbye
-        res = self.request_dcp_message(msg_id, "")
-        c_string = ByteUtil.extract_string(res)
+        message_id = LddsMessageIds.goodbye
+        server_response = self.request_dcp_message(message_id, "")
+        c_string = ByteUtil.extract_string(server_response)
         write_debug(c_string)

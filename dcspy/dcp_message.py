@@ -92,7 +92,10 @@ class DcpMessage:
             ldds_message = LddsMessage.parse(sync_code + message_bytes)
 
             if ldds_message.server_error is not None:
-                if not ldds_message.server_error.is_end_of_message:
+                if ldds_message.server_error.is_end_of_message:
+                    # Ignore this type of error
+                    continue
+                else:
                     write_error(str(ldds_message.server_error))
                     continue
 

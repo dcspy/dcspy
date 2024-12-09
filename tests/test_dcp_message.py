@@ -1,5 +1,5 @@
 import unittest
-from dcspy.ldds_message import LddsMessage, LddsMessageIds
+from dcspy.ldds_message import LddsMessage
 from dcspy.dcp_message import DcpMessage
 
 

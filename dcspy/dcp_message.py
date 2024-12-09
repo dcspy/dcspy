@@ -10,17 +10,12 @@ class DcpMessage:
     from a remote server using the LDDS protocol.
 
     Attributes:
-        max_data_length (int): Maximum allowed data length for a DCP message.
-        max_failure_codes (int): Maximum number of failure codes allowed.
-        data_length (int): Standard length of the data field in a DCP message.
-        header_length (int): Standard length of the header in a DCP message.
-        badCodes (str): Set of codes representing bad or failed message statuses.
+        DATA_LENGTH (int): Standard length of the data field in a DCP message.
+        HEADER_LENGTH (int): Standard length of the header in a DCP message.
     """
-    max_data_length = 99800
-    max_failure_codes = 8
-    data_length = 32
-    header_length = 37
-    badCodes = "?MTUBIQW"
+
+    DATA_LENGTH = 32
+    HEADER_LENGTH = 37
 
     @staticmethod
     def get(username: str,
@@ -79,26 +74,36 @@ class DcpMessage:
         return dcp_messages
 
     @staticmethod
-    def explode(message_block: bytes):
+    def explode(message_block: bytes,
+                ) -> list[str]:
         """
-        Splits a single LDDS message containing multiple DCP messages into individual messages.
+        Splits a message block bytes containing multiple DCP messages into individual messages.
 
         :param message_block: message block (concatenated response from the server).
         :return: A list of individual DCP messages.
         """
-        sync_code = LddsMessageConstants.VALID_SYNC_CODE
-        ldds_messages = [LddsMessage.parse(sync_code + x) for x in message_block.split(sync_code) if x != b""]
         dcp_messages = []
-        for ind, (ldds_message, server_error) in enumerate(ldds_messages):
-            if server_error is None:
-                message = ldds_message.message_data.decode()
-                start = 0
-                while start < ldds_message.message_length:
-                    # Extract the length of the current message
-                    message_length = int(message[(start + DcpMessage.data_length):(start + DcpMessage.header_length)])
-                    # Extract the entire message using the determined length
-                    message_ = message[start:(start + DcpMessage.header_length + message_length)]
-                    dcp_messages.append(message_)
-                    start += DcpMessage.header_length + message_length
+        sync_code = LddsMessageConstants.VALID_SYNC_CODE
+        for message_bytes in message_block.split(sync_code):
+            if len(message_bytes) == 0:
+                continue
+
+            ldds_message, server_error = LddsMessage.parse(sync_code + message_bytes)
+
+            if server_error is not None:
+                write_error(str(server_error))
+                continue
+
+            message = ldds_message.message_data.decode()
+            start_index = 0
+            while start_index < ldds_message.message_length:
+                # Extract the length of the current message
+                message_length = int(
+                    message[(start_index + DcpMessage.DATA_LENGTH):(start_index + DcpMessage.HEADER_LENGTH)])
+                # Extract the entire message using the determined length
+                end_index = start_index + DcpMessage.HEADER_LENGTH + message_length
+                dcp_message = message[start_index:end_index]
+                dcp_messages.append(dcp_message)
+                start_index += DcpMessage.HEADER_LENGTH + message_length
 
         return dcp_messages

@@ -209,9 +209,8 @@ class LddsClient(BasicClient):
                 if response.startswith(LddsMessageConstants.VALID_SYNC_CODE):
                     server_error = LddsMessage.check_error(response)
                     if server_error is not None:
-                        if server_error.server_code_no in (
-                                ServerErrorCode.DUNTIL.value, ServerErrorCode.DUNTILDRS.value):
-                            write_log(ServerErrorCode.DUNTIL.description)
+                        if server_error.is_end_of_message:
+                            write_log(server_error.description)
                             break
                         else:
                             raise server_error

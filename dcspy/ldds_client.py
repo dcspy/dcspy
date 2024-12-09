@@ -192,8 +192,8 @@ class LddsClient(BasicClient):
         except Exception as e:
             write_error(f"Error receiving data: {e}")
 
-    def request_dcp_block(self,
-                          ) -> bytearray:
+    def request_dcp_blocks(self,
+                           ) -> bytearray:
         """
         Request a block of DCP messages from the LDDS server.
 
@@ -206,7 +206,8 @@ class LddsClient(BasicClient):
             while True:
                 response = self.request_dcp_message(msg_id)
                 if response.startswith(LddsMessageConstants.VALID_SYNC_CODE):
-                    server_error = LddsMessage.check_error(response)
+                    ldds_message = LddsMessage.parse(response)
+                    server_error = ldds_message.server_error
                     if server_error is not None:
                         if server_error.is_end_of_message:
                             write_log(server_error.description)

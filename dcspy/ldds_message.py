@@ -65,25 +65,15 @@ class LddsMessage:
         self.server_error: ServerError = None
         self.error: LddsMessageError = None
 
-    def __check_server_error(self):
+    def check_server_errors(self):
         if self.message_data.startswith(b"?"):
             error_string = ByteUtil.extract_string(self.message_data)
             self.server_error = ServerError.from_error_string(error_string)
 
-    def __check_error(self):
+    def check_other_errors(self):
         if self.message_length != len(self.message_data):
             self.error = LddsMessageError("Inconsistent LDDS message length")
-
-    @staticmethod
-    def check_error(message: bytes,
-                    ):
-        header_length = LddsMessageConstants.VALID_HEADER_LENGTH
-        message_data = message[header_length:]
-        if message_data.startswith(b"?"):
-            error_string = ByteUtil.extract_string(message, header_length)
-            server_error = ServerError.from_error_string(error_string)
-            return server_error
-        return None
+        # TODO: add other errors
 
     @staticmethod
     def parse(message: bytes,
@@ -117,8 +107,8 @@ class LddsMessage:
                                    message_length=message_length,
                                    message_data=message_data,
                                    header=header)
-        ldds_message.__check_error()
-        ldds_message.__check_server_error()
+        ldds_message.check_other_errors()
+        ldds_message.check_server_errors()
 
         return ldds_message
 

@@ -1,12 +1,7 @@
 from dataclasses import dataclass
 from .logs import write_error
 from .utils import ByteUtil
-from .server_exceptions import ServerError, LddsMessageError
-
-
-class ProtocolError(Exception):
-    """Custom exception for protocol errors."""
-    pass
+from .exceptions import ServerError, LddsMessageError, ProtocolError
 
 
 @dataclass

@@ -1,5 +1,5 @@
 import unittest
-from dcspy.server_exceptions import ServerError
+from dcspy.exceptions import ServerError
 
 
 class TestServerExceptions(unittest.TestCase):

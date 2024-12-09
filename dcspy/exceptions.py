@@ -79,7 +79,7 @@ class ServerErrorCode(Enum):
         return self.__description
 
 
-class ServerError(Exception):
+class ServerError:
     def __init__(self,
                  error_message: str,
                  server_code_no: int = 0,
@@ -90,7 +90,7 @@ class ServerError(Exception):
         :param server_code_no:
         :param system_code_no:
         """
-        super().__init__(error_message)
+
         self.message = error_message
         self.server_code_no = server_code_no
         self.system_code_no = system_code_no
@@ -136,8 +136,9 @@ class ServerError(Exception):
                 self.message == other.message)
 
 
+class ProtocolError(Exception):
+    pass
+
+
 class LddsMessageError(Exception):
-    def __init__(self,
-                 error_message: str,
-                 ):
-        super().__init__(error_message)
+    pass

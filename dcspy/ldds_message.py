@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from .logs import write_error
 from .utils import ByteUtil
-from .server_exceptions import ServerError
+from .server_exceptions import ServerError, LddsMessageError
 
 
 class ProtocolError(Exception):
@@ -67,6 +67,17 @@ class LddsMessage:
         self.message_length = message_length
         self.message_data = message_data
         self.header = header
+        self.server_error: ServerError = None
+        self.error: LddsMessageError = None
+
+    def __check_server_error(self):
+        if self.message_data.startswith(b"?"):
+            error_string = ByteUtil.extract_string(self.message_data)
+            self.server_error = ServerError.from_error_string(error_string)
+
+    def __check_error(self):
+        if self.message_length != len(self.message_data):
+            self.error = LddsMessageError("Inconsistent LDDS message length")
 
     @staticmethod
     def check_error(message: bytes,
@@ -92,11 +103,6 @@ class LddsMessage:
         header_length = LddsMessageConstants.VALID_HEADER_LENGTH
         assert len(message) >= header_length, f"Invalid LDDS message - length={len(message)}"
 
-        server_error = LddsMessage.check_error(message)
-        if server_error is not None:
-            ldds_message = None
-            return ldds_message, server_error
-
         header = message[:header_length]
         sync = header[:4]
         assert sync == LddsMessageConstants.VALID_SYNC_CODE, f"Invalid LDDS message header - bad sync '{sync}'"
@@ -111,14 +117,15 @@ class LddsMessage:
             raise ProtocolError(f"Invalid LDDS message header - bad length field = '{message_length_str}'")
 
         message_data = message[header_length:]
-        assert len(message_data) == message_length, f"Inconsistent LDDS message length"
 
         ldds_message = LddsMessage(message_id=message_id,
                                    message_length=message_length,
                                    message_data=message_data,
                                    header=header)
+        ldds_message.__check_error()
+        ldds_message.__check_server_error()
 
-        return ldds_message, server_error
+        return ldds_message
 
     @staticmethod
     def create(message_id: str,

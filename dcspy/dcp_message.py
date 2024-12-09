@@ -75,7 +75,7 @@ class DcpMessage:
 
     @staticmethod
     def explode(message_block: bytes,
-                ) -> list[str]:
+                ) -> (list[str], list[LddsMessage]):
         """
         Splits a message block bytes containing multiple DCP messages into individual messages.
 
@@ -83,15 +83,21 @@ class DcpMessage:
         :return: A list of individual DCP messages.
         """
         dcp_messages = []
+        ldds_messages_with_error = []
         sync_code = LddsMessageConstants.VALID_SYNC_CODE
         for message_bytes in message_block.split(sync_code):
             if len(message_bytes) == 0:
                 continue
 
-            ldds_message, server_error = LddsMessage.parse(sync_code + message_bytes)
+            ldds_message = LddsMessage.parse(sync_code + message_bytes)
 
-            if server_error is not None:
-                write_error(str(server_error))
+            if ldds_message.server_error is not None:
+                if not ldds_message.server_error.is_end_of_message:
+                    write_error(str(ldds_message.server_error))
+                    continue
+
+            if ldds_message.error is not None:
+                ldds_messages_with_error.append(ldds_message)
                 continue
 
             message = ldds_message.message_data.decode()
@@ -106,4 +112,4 @@ class DcpMessage:
                 dcp_messages.append(dcp_message)
                 start_index += DcpMessage.HEADER_LENGTH + message_length
 
-        return dcp_messages
+        return dcp_messages, ldds_messages_with_error

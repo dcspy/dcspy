@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from typing import Union
 from .search_criteria import SearchCriteria
 from .lrgs_error_codes import ServerErrorCode
-from .server_exceptions import ServerError
 from .ldds_message import LddsMessage, LddsMessageIds, LddsMessageConstants
 from .logs import write_debug, write_error, write_log
 from .credentials import Sha1, Sha256, Credentials
@@ -138,8 +137,9 @@ class LddsClient(BasicClient):
         for hash_algo in [Sha1, Sha256]:
             auth_str = credentials.get_authenticated_hello(datetime.now(timezone.utc), hash_algo())
             write_debug(auth_str)
-            res = self.request_dcp_message(msg_id, auth_str)
-            _, server_error = LddsMessage.parse(res)
+            server_response = self.request_dcp_message(msg_id, auth_str)
+            ldds_message = LddsMessage.parse(server_response)
+            server_error = ldds_message.server_error
             if server_error is not None:
                 write_debug(str(server_error))
             else:

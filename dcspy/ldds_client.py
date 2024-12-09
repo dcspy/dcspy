@@ -3,7 +3,6 @@ import time
 from datetime import datetime, timezone
 from typing import Union
 from .search_criteria import SearchCriteria
-from .lrgs_error_codes import ServerErrorCode
 from .ldds_message import LddsMessage, LddsMessageIds, LddsMessageConstants
 from .logs import write_debug, write_error, write_log
 from .credentials import Sha1, Sha256, Credentials

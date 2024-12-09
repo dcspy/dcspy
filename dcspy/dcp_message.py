@@ -27,8 +27,8 @@ class DcpMessage:
             password: str,
             search_criteria: str,
             host: str,
-            port: int = None,
-            timeout: int = None,
+            port: int = 16003,
+            timeout: int = 30,
             ):
         """
         Fetches DCP messages from a server based on provided search criteria.
@@ -43,24 +43,19 @@ class DcpMessage:
         :param host: Hostname or IP address of the server.
         :param port: Port number for server connection (default: 16003).
         :param timeout: Connection timeout in seconds (default: 30 seconds).
-        :param debug: If True, enables debug logging; otherwise, sets logging to INFO level.
+            Will be passed to `socket.settimeout <https://docs.python.org/3/library/socket.html#socket.socket.settimeout>`_
         :return: List of DCP messages retrieved from the server.
         """
 
-        # Use default values for port and timeout if not provided
-        port = port if port is not None else 16003
-        timeout = timeout if timeout is not None else 30
         client = LddsClient(host=host, port=port, timeout=timeout)
 
         try:
-            # Attempt to connect to the server
             client.connect()
         except Exception as e:
             write_error("Failed to connect to server. Error: " + str(e))
             return
 
         try:
-            # Attempt to authenticate the user
             client.authenticate_user(username, password)
         except Exception as e:
             write_error("Failed to authenticate user. Error: " + str(e))
@@ -68,7 +63,6 @@ class DcpMessage:
             return
 
         try:
-            # Load search criteria and send it to the server
             criteria = SearchCriteria.from_file(search_criteria)
             client.send_search_criteria(criteria)
         except Exception as e:
@@ -80,7 +74,6 @@ class DcpMessage:
         dcp_block = client.request_dcp_block()
         dcp_messages = DcpMessage.explode(dcp_block)
 
-        # Send a goodbye message and disconnect from the server
         client.send_goodbye()
         client.disconnect()
         return dcp_messages

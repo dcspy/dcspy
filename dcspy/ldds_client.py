@@ -48,10 +48,8 @@ class BasicClient:
         try:
             write_debug(f"Attempting to connect to {self.host}:{self.port}")
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            if self.timeout is not None:
-                self.socket.settimeout(self.timeout)
+            self.socket.settimeout(self.timeout)
             self.socket.connect((self.host, self.port))
-            self.socket.setblocking(True)  # Set the socket to blocking mode
             self.last_connect_attempt = time.time()
             write_debug(f"Successfully connected to {self.host}:{self.port}")
         except socket.timeout as ex:
@@ -195,13 +193,15 @@ class LddsClient(BasicClient):
         except Exception as e:
             write_error(f"Error receiving data: {e}")
 
-    def request_dcp_block(self):
+    def request_dcp_block(self,
+                          ) -> bytearray:
         """
         Request a block of DCP messages from the LDDS server.
 
-        :return: The received DCP block as an LddsMessage object.
+        :return: The received DCP block as bytearray.
         """
         msg_id = LddsMessageIds.dcp_block
+        max_data_length = LddsMessageConstants.MAX_DATA_LENGTH
         dcp_messages = bytearray()
         try:
             while True:
@@ -216,6 +216,8 @@ class LddsClient(BasicClient):
                         else:
                             raise server_error
                 dcp_messages += response
+                if len(dcp_messages) >= max_data_length:
+                    raise OverflowError(f"message block length exceeds maximum data length ({max_data_length})")
             return dcp_messages
         except Exception as err:
             write_debug(f"Error receiving data: {err}")

@@ -213,7 +213,7 @@ class LddsClient(BasicClient):
                             write_log(server_error.description)
                             break
                         else:
-                            raise server_error
+                            server_error.raise_exception()
                 dcp_messages += response
                 if len(dcp_messages) >= max_data_length:
                     raise OverflowError(f"message block length exceeds maximum data length ({max_data_length})")

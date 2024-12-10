@@ -81,17 +81,17 @@ class ServerErrorCode(Enum):
 
 class ServerError:
     def __init__(self,
-                 error_message: str,
+                 message: str,
                  server_code_no: int = 0,
                  system_code_no: int = 0):
         """
 
-        :param error_message:
+        :param message:
         :param server_code_no:
         :param system_code_no:
         """
 
-        self.message = error_message
+        self.message = message
         self.server_code_no = server_code_no
         self.system_code_no = system_code_no
         self.is_end_of_message = self.is_end_of_message()
@@ -120,6 +120,9 @@ class ServerError:
         split_error_string = error_string[1:].split(",", maxsplit=2)
         sever_code_no, system_code_no, message = [x.strip() for x in split_error_string]
         return ServerError(message, int(sever_code_no), int(system_code_no))
+
+    def raise_exception(self):
+        raise ProtocolError(self.__str__())
 
     def __str__(self):
         if self.system_code_no == 0 and self.server_code_no == 0:

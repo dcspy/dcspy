@@ -6,7 +6,7 @@ from dcspy.exceptions import ServerError, LddsMessageError
 class TestLddsMessage(unittest.TestCase):
     def test_parse_w_error(self):
         parsed_message = LddsMessage.parse(b"FAF0m00030?55,0,Server requires SHA-256.")
-        server_error = ServerError(error_message="Server requires SHA-256.",
+        server_error = ServerError(message="Server requires SHA-256.",
                                    server_code_no=55,
                                    system_code_no=0)
         self.assertEqual(parsed_message.server_error, server_error)

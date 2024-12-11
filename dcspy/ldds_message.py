@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-from .logs import write_error
-from .utils import ByteUtil
-from .exceptions import ServerError, LddsMessageError, ProtocolError
+from .exceptions import ServerError, ServerErrorCode, LddsMessageError, ProtocolError
 
 
 @dataclass
@@ -67,8 +65,7 @@ class LddsMessage:
 
     def check_server_errors(self):
         if self.message_data.startswith(b"?"):
-            error_string = ByteUtil.extract_string(self.message_data)
-            self.server_error = ServerError.from_error_string(error_string)
+            self.server_error = ServerError.parse(self.message_data)
 
     def check_other_errors(self):
         if self.message_length != len(self.message_data):
@@ -95,12 +92,7 @@ class LddsMessage:
         message_id = header.decode()[4]
         assert message_id in LddsMessageConstants.VALID_IDS, f"Invalid LDDS message header - ID = '{message_id}'"
 
-        message_length_str = header[5:10].decode().replace(" ", "0")
-        try:
-            message_length = int(message_length_str)
-        except ValueError:
-            raise ProtocolError(f"Invalid LDDS message header - bad length field = '{message_length_str}'")
-
+        message_length = LddsMessage.get_message_length(header)
         message_data = message[header_length:]
 
         ldds_message = LddsMessage(message_id=message_id,
@@ -111,6 +103,21 @@ class LddsMessage:
         ldds_message.check_server_errors()
 
         return ldds_message
+
+    @staticmethod
+    def get_message_length(message: bytes,
+                           ) -> int:
+        message_length_str = message[5:10].decode().replace(" ", "0")
+        try:
+            message_length = int(message_length_str)
+        except ValueError:
+            raise ProtocolError(f"Invalid LDDS message header - bad length field = '{message_length_str}'")
+        return message_length
+
+    @staticmethod
+    def get_total_length(message: bytes,
+                         ) -> int:
+        return LddsMessage.get_message_length(message) + LddsMessageConstants.VALID_HEADER_LENGTH
 
     @staticmethod
     def create(message_id: str,
@@ -161,16 +168,14 @@ class LddsMessage:
                 self.message_id == other.message_id and
                 self.message_data == other.message_data)
 
-    @staticmethod
-    def has_sync_code(message):
-        has_sync_code = False
-        if message.startswith(LddsMessageConstants.VALID_SYNC_CODE):
-            try:
-                message_length_str = message[5:10].decode().replace(" ", "0")
-                message_length = int(message_length_str)
-                if isinstance(message_length, int):
-                    has_sync_code = True
-            except Exception as err:
-                write_error("Can't determine if message has sync code")
-                raise err
-        return has_sync_code
+    def is_end_of_message(self):
+        server_error = ServerError.parse(self.message_data)
+        if server_error.server_code_no in (ServerErrorCode.DUNTIL.value, ServerErrorCode.DUNTILDRS.value):
+            return True
+        return False
+
+    def is_success(self):
+        server_error = ServerError.parse(self.message_data)
+        if server_error.server_code_no == 0 and server_error.system_code_no == 0:
+            return True
+        return False

@@ -55,7 +55,7 @@ class DcpMessage:
         except Exception as e:
             write_error("Failed to authenticate user. Error: " + str(e))
             client.disconnect()
-            return
+            raise
 
         try:
             criteria = SearchCriteria.from_file(search_criteria)
@@ -63,7 +63,7 @@ class DcpMessage:
         except Exception as e:
             write_error("Failed to send search criteria. Error: " + str(e))
             client.disconnect()
-            return
+            raise
 
         # Retrieve the DCP block and process it into individual messages
         dcp_blocks = client.request_dcp_blocks()
@@ -74,48 +74,29 @@ class DcpMessage:
         return dcp_messages
 
     @staticmethod
-    def explode(message_blocks: bytes,
-                ) -> (list[str], list[LddsMessage]):
+    def explode(message_blocks: list[LddsMessage],
+                ) -> list[str]:
         """
         Splits a message block bytes containing multiple DCP messages into individual messages.
 
         :param message_blocks: message block (concatenated response from the server).
         :return: A list of individual DCP messages.
         """
+
+        data_length = DcpMessage.DATA_LENGTH
+        header_length = DcpMessage.HEADER_LENGTH
         dcp_messages = []
-        ldds_messages_with_server_error = []
-        ldds_messages_with_other_error = []
-        sync_code = LddsMessageConstants.VALID_SYNC_CODE
-        for message_block in message_blocks.split(sync_code):
-            if len(message_block) == 0:
-                continue
 
-            ldds_message = LddsMessage.parse(sync_code + message_block)
-
-            if ldds_message.server_error is not None:
-                if ldds_message.server_error.is_end_of_message:
-                    # Ignore this type of error
-                    continue
-                else:
-                    ldds_messages_with_server_error.append(ldds_message)
-                    continue
-
-            if ldds_message.error is not None:
-                ldds_messages_with_other_error.append(ldds_message)
-                continue
-
+        for ldds_message in message_blocks:
             message = ldds_message.message_data.decode()
             start_index = 0
             while start_index < ldds_message.message_length:
                 # Extract the length of the current message
-                message_length = int(
-                    message[(start_index + DcpMessage.DATA_LENGTH):(start_index + DcpMessage.HEADER_LENGTH)])
+                message_length = int(message[(start_index + data_length):(start_index + header_length)])
                 # Extract the entire message using the determined length
-                end_index = start_index + DcpMessage.HEADER_LENGTH + message_length
+                end_index = start_index + header_length + message_length
                 dcp_message = message[start_index:end_index]
                 dcp_messages.append(dcp_message)
                 start_index += DcpMessage.HEADER_LENGTH + message_length
 
-        write_log(f"Message Blocks with server errors: {len(ldds_messages_with_server_error)}")
-        write_log(f"Message Blocks with other errors: {len(ldds_messages_with_other_error)}")
-        return dcp_messages, ldds_messages_with_server_error, ldds_messages_with_other_error
+        return dcp_messages

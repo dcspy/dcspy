@@ -4,9 +4,8 @@ from datetime import datetime, timezone
 from typing import Union
 from .search_criteria import SearchCriteria
 from .ldds_message import LddsMessage, LddsMessageIds, LddsMessageConstants
-from .logs import write_debug, write_error, write_log
+from .logs import write_debug, write_log
 from .credentials import Sha1, Sha256, Credentials
-from .utils import ByteUtil
 
 
 class BasicClient:
@@ -84,19 +83,6 @@ class BasicClient:
             raise IOError("BasicClient socket closed.")
         self.socket.sendall(data)
 
-    def receive_data(self, buffer_size: int = 1024) -> bytes:
-        """
-        Receive data from the socket.
-
-        :param buffer_size: The size of the buffer to use when receiving data.
-        :return: The received byte data.
-        :raises IOError: If the socket is not connected.
-        """
-        if self.socket is None:
-            raise IOError("BasicClient socket closed.")
-        data = self.socket.recv(buffer_size)
-        return data
-
 
 class LddsClient(BasicClient):
     """
@@ -117,6 +103,29 @@ class LddsClient(BasicClient):
         """
         super().__init__(host=host, port=port, timeout=timeout)
 
+    def receive_data(self,
+                     buffer_size: int = 32,
+                     ) -> bytes:
+        """
+        Receive data from the socket.
+
+        :param buffer_size: The size of the buffer to use when receiving data.
+        :return: The received byte data.
+        :raises IOError: If the socket is not connected.
+        """
+        if self.socket is None:
+            raise IOError("BasicClient socket closed.")
+
+        data = self.socket.recv(buffer_size)
+        if len(data) == 0:
+            raise IOError("BasicClient socket closed.")
+
+        ldds_message_length = LddsMessage.get_total_length(data)
+        while len(data) < ldds_message_length:
+            data += self.socket.recv(buffer_size)
+
+        return data
+
     def authenticate_user(self,
                           user_name: str = "user",
                           password: str = "pass",
@@ -136,8 +145,7 @@ class LddsClient(BasicClient):
         for hash_algo in [Sha1, Sha256]:
             auth_str = credentials.get_authenticated_hello(datetime.now(timezone.utc), hash_algo())
             write_debug(auth_str)
-            server_response = self.request_dcp_message(msg_id, auth_str)
-            ldds_message = LddsMessage.parse(server_response)
+            ldds_message = self.request_dcp_message(msg_id, auth_str)
             server_error = ldds_message.server_error
             if server_error is not None:
                 write_debug(str(server_error))
@@ -150,26 +158,24 @@ class LddsClient(BasicClient):
             raise Exception(f"Could not authenticate for user:{user_name}\n{server_error}")
 
     def request_dcp_message(self,
-                            msg_id,
-                            msg_data: str = "",
-                            ) -> bytes:
+                            message_id,
+                            message_data: Union[str, bytes, bytearray] = "",
+                            ) -> LddsMessage:
         """
         Request a DCP (Data Collection Platform) message from the LDDS server.
 
-        :param msg_id: The ID of the message to request.
-        :param msg_data: The data to include in the message request.
+        :param message_id: The ID of the message to request.
+        :param message_data: The data to include in the message request.
         :return: The response from the server as bytes.
         """
-        response = b""
-        message = LddsMessage.create(message_id=msg_id, message_data=msg_data.encode())
+        if isinstance(message_data, str):
+            message_data = message_data.encode()
+        message = LddsMessage.create(message_id=message_id,
+                                     message_data=message_data)
         bytes_to_send = message.to_bytes()
         self.send_data(bytes_to_send)
-
-        try:
-            response = self.receive_data()
-        except Exception as e:
-            write_error(f"Error receiving data: {e}")
-        return response
+        server_response = self.receive_data()
+        return LddsMessage.parse(server_response)
 
     def send_search_criteria(self,
                              search_criteria: SearchCriteria,
@@ -180,20 +186,19 @@ class LddsClient(BasicClient):
         :param search_criteria: The search criteria to send.
         :return: None
         """
-        data = bytes(search_criteria)
-        msg = LddsMessage.create(message_id=LddsMessageIds.search_criteria,
-                                 message_data=bytearray(50) + data)
+        data_to_send = bytearray(50) + bytes(search_criteria)
+        write_debug(f"Sending criteria message (filesize = {len(data_to_send)} bytes)")
+        ldds_message = self.request_dcp_message(LddsMessageIds.search_criteria,
+                                                data_to_send)
 
-        write_debug(f"Sending criteria message (filesize = {len(data)} bytes)")
-        self.send_data(msg.to_bytes())
-        try:
-            response = self.receive_data()
-            write_debug(response.decode())
-        except Exception as e:
-            write_error(f"Error receiving data: {e}")
+        server_error = ldds_message.server_error
+        if server_error is not None:
+            server_error.raise_exception()
+        else:
+            write_log("Search criteria sent successfully.")
 
     def request_dcp_blocks(self,
-                           ) -> bytearray:
+                           ) -> list[LddsMessage]:
         """
         Request a block of DCP messages from the LDDS server.
 
@@ -201,22 +206,19 @@ class LddsClient(BasicClient):
         """
         msg_id = LddsMessageIds.dcp_block
         max_data_length = LddsMessageConstants.MAX_DATA_LENGTH
-        dcp_messages = bytearray()
+        dcp_messages = []
         try:
             while True:
                 response = self.request_dcp_message(msg_id)
-                if response.startswith(LddsMessageConstants.VALID_SYNC_CODE):
-                    ldds_message = LddsMessage.parse(response)
-                    server_error = ldds_message.server_error
-                    if server_error is not None:
-                        if server_error.is_end_of_message:
-                            write_log(server_error.description)
-                            break
-                        else:
-                            server_error.raise_exception()
-                dcp_messages += response
-                if len(dcp_messages) >= max_data_length:
-                    raise OverflowError(f"message block length exceeds maximum data length ({max_data_length})")
+                server_error = response.server_error
+                if server_error is not None:
+                    if server_error.is_end_of_message:
+                        write_log(server_error.description)
+                        break
+                    else:
+                        server_error.raise_exception()
+                dcp_messages.append(response)
+
             return dcp_messages
         except Exception as err:
             write_debug(f"Error receiving data: {err}")
@@ -238,6 +240,6 @@ class LddsClient(BasicClient):
         :return: None
         """
         message_id = LddsMessageIds.goodbye
-        server_response = self.request_dcp_message(message_id, "")
-        c_string = ByteUtil.extract_string(server_response)
-        write_debug(c_string)
+        ldds_message = self.request_dcp_message(message_id, "")
+        server_error = ldds_message.server_error
+        write_debug(ldds_message.to_bytes())

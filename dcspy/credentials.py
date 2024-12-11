@@ -82,26 +82,8 @@ class Credentials:
         :param username: The username of the user.
         :param password: The password of the user.
         """
-        self.__username = username
-        self.__preliminary_hash = self.get_preliminary_hash(password)
-
-    @property
-    def username(self):
-        """
-        Get the username.
-
-        :return: The username as a string.
-        """
-        return self.__username
-
-    @property
-    def preliminary_hash(self):
-        """
-        Get the preliminary hash of the password.
-
-        :return: The preliminary hash as bytes.
-        """
-        return self.__preliminary_hash
+        self.username = username
+        self.preliminary_hash = self.get_preliminary_hash(password)
 
     def get_preliminary_hash(self,
                              password: str) -> bytes:

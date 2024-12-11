@@ -1,4 +1,5 @@
 from enum import Enum, verify, UNIQUE
+from .utils import ByteUtil
 from .logs import write_debug
 
 
@@ -106,20 +107,20 @@ class ServerError:
         return ServerErrorCode(self.server_code_no).description
 
     @staticmethod
-    def from_error_string(error_string: str):
+    def parse(message: bytes):
         """
         Parse ServerError from error_string
 
-        :param error_string: error string extracted from bytes response returned from server
+        :param message: bytes response returned from server
         :return: object of ServerError class
         """
-        if not error_string.startswith('?'):
-            write_debug(f"{error_string} is not a server error")
-            return
-
+        if not message.startswith(b"?"):
+            # Not a server error
+            return ServerError("")
+        error_string = ByteUtil.extract_string(message)
         split_error_string = error_string[1:].split(",", maxsplit=2)
-        sever_code_no, system_code_no, message = [x.strip() for x in split_error_string]
-        return ServerError(message, int(sever_code_no), int(system_code_no))
+        sever_code_no, system_code_no, error_string = [x.strip() for x in split_error_string]
+        return ServerError(error_string, int(sever_code_no), int(system_code_no))
 
     def raise_exception(self):
         raise ProtocolError(self.__str__())

@@ -32,7 +32,6 @@ class BasicClient:
         self.port = port
         self.timeout = timeout
         self.socket = None
-        self.last_connect_attempt = 0
 
     def connect(self):
         """
@@ -47,7 +46,6 @@ class BasicClient:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(self.timeout)
             self.socket.connect((self.host, self.port))
-            self.last_connect_attempt = time.time()
             write_debug(f"Successfully connected to {self.host}:{self.port}")
         except socket.timeout as ex:
             raise IOError(f"Connection to {self.host}:{self.port} timed out") from ex
@@ -104,7 +102,7 @@ class LddsClient(BasicClient):
         super().__init__(host=host, port=port, timeout=timeout)
 
     def receive_data(self,
-                     buffer_size: int = 32,
+                     buffer_size: int = 1024,
                      ) -> bytes:
         """
         Receive data from the socket.
@@ -172,8 +170,8 @@ class LddsClient(BasicClient):
             message_data = message_data.encode()
         message = LddsMessage.create(message_id=message_id,
                                      message_data=message_data)
-        bytes_to_send = message.to_bytes()
-        self.send_data(bytes_to_send)
+        message_bytes = message.to_bytes()
+        self.send_data(message_bytes)
         server_response = self.receive_data()
         return LddsMessage.parse(server_response)
 
@@ -223,15 +221,6 @@ class LddsClient(BasicClient):
         except Exception as err:
             write_debug(f"Error receiving data: {err}")
             raise err
-
-    @property
-    def name(self):
-        """
-        Return a string representation of the LDDS client's host and port.
-
-        :return: The host and port as a string.
-        """
-        return f"{self.host}:{self.port}"
 
     def send_goodbye(self):
         """

@@ -10,10 +10,10 @@ class DcpMessageSource(Enum):
     """
     Enumeration for DCP message sources with unique values.
 
-    Attributes:
-        GOES: Represents a standard GOES message source.
-        GOES_SELFTIMED: Represents a self-timed GOES message source.
-        GOES_RANDOM: Represents a random GOES message source.
+
+    :param GOES: Represents a standard GOES message source.
+    :param GOES_SELFTIMED: Represents a self-timed GOES message source.
+    :param GOES_RANDOM: Represents a random GOES message source.
     """
     GOES = 0x00000000
     GOES_SELFTIMED = 0x00010000
@@ -25,8 +25,8 @@ class SearchCriteriaConstants:
     """
     Constants used in SearchCriteria.
 
-    Attributes:
-        max_sources: The maximum number of sources that can be added to the search criteria.
+
+    :param max_sources: The maximum number of sources that can be added to the search criteria.
     """
     max_sources: int = 12
 
@@ -35,8 +35,8 @@ class DcpAddress:
     """
     Class representing a DCP address.
 
-    Attributes:
-        address (str): The DCP address, which must be 8 characters long.
+
+    :param address: (str) The DCP address, which must be 8 characters long.
     """
 
     def __init__(self, address: str):
@@ -60,17 +60,6 @@ class DcpAddress:
 
 
 class SearchCriteria:
-    """
-    Class for representing LRGS search criteria.
-
-    Attributes:
-        lrgs_since (str): The starting time for the LRGS search.
-        lrgs_until (str): The ending time for the LRGS search.
-        dcp_address (list[DcpAddress]): A list of DCP addresses to include in the search.
-        sources (list[int]): A list of source identifiers for the search criteria.
-        num_sources (int): The number of sources currently in the search criteria.
-    """
-
     def __init__(self,
                  lrgs_since: str,
                  lrgs_until: str,

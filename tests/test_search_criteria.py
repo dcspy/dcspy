@@ -1,7 +1,7 @@
 import os
 import json
 import unittest
-from dcspy.search_criteria import SearchCriteria, DcpAddress, SearchCriteriaConstants
+from dcspy.search_criteria import SearchCriteria, DcpAddress, DcpMessageSource
 
 
 class TestSearchCriteria(unittest.TestCase):
@@ -20,7 +20,9 @@ class TestSearchCriteria(unittest.TestCase):
         self.assertEqual(search_criteria.lrgs_since, '2022-01-01 00:00:00')
         self.assertEqual(search_criteria.lrgs_until, '2022-01-01 00:02:00')
         self.assertEqual(len(search_criteria.sources), 12)
-        self.assertEqual(set(search_criteria.sources), {65536, 131072, 0})
+        self.assertEqual(set(search_criteria.sources), {DcpMessageSource.GOES.value,
+                                                        DcpMessageSource.GOES_SELFTIMED.value,
+                                                        DcpMessageSource.GOES_RANDOM.value})
         for x, y in zip(sorted(search_criteria.dcp_address, key=lambda da: da.address),
                         ["A0806A3E", "A081B07E"],
                         strict=True):

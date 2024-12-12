@@ -62,17 +62,6 @@ class Sha256(HashAlgo):
 
 
 class Credentials:
-    """
-    A class representing user credentials.
-
-    This class handles the username and password, and provides methods for generating
-    preliminary and authenticator hashes for authentication purposes.
-
-    Attributes:
-        __username (str): The username of the user.
-        __preliminary_hash (bytes): The preliminary hash of the user's password.
-    """
-
     def __init__(self,
                  username: str = None,
                  password: str = None):

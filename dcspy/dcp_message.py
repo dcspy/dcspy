@@ -1,7 +1,7 @@
-from .logs import write_error, write_log
+from .logs import write_error
 from .search_criteria import SearchCriteria
 from .ldds_client import LddsClient
-from .ldds_message import LddsMessage, LddsMessageConstants
+from .ldds_message import LddsMessage
 
 
 class DcpMessage:
@@ -9,9 +9,9 @@ class DcpMessage:
     Class for handling DCP messages, including fetching and processing them
     from a remote server using the LDDS protocol.
 
-    Attributes:
-        DATA_LENGTH (int): Standard length of the data field in a DCP message.
-        HEADER_LENGTH (int): Standard length of the header in a DCP message.
+
+    :param DATA_LENGTH: Standard length of the data field in a DCP message.
+    :param: HEADER_LENGTH: Standard length of the header in a DCP message.
     """
 
     DATA_LENGTH = 32

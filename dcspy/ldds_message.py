@@ -6,6 +6,7 @@ from .exceptions import ServerError, ServerErrorCode, LddsMessageError, Protocol
 class LddsMessageConstants:
     """Constants related to LDDS messages."""
     VALID_HEADER_LENGTH: int = 10
+    SYNC_LENGTH: int = 4
     VALID_SYNC_CODE: bytes = b"FAF0"
     MAX_DATA_LENGTH: int = 99000
     VALID_IDS: frozenset[str] = frozenset(("a", "b", "c", "d", "e", "f", "g",
@@ -84,9 +85,10 @@ class LddsMessage:
         """
         header_length = LddsMessageConstants.VALID_HEADER_LENGTH
         assert len(message) >= header_length, f"Invalid LDDS message - length={len(message)}"
-
         header = message[:header_length]
-        sync = header[:4]
+
+        sync_length = LddsMessageConstants.SYNC_LENGTH
+        sync = header[:sync_length]
         assert sync == LddsMessageConstants.VALID_SYNC_CODE, f"Invalid LDDS message header - bad sync '{sync}'"
 
         message_id = header.decode()[4]

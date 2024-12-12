@@ -20,6 +20,8 @@ release = '0.0.1'
 
 extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "myst_parser"]
 
+autodoc_member_order = 'bysource'
+
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 add_module_names = False

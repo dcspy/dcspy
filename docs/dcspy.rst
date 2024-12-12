@@ -1,22 +1,29 @@
 dcspy package
 =============
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   dcspy.constants
-   dcspy.security
-
 Submodules
 ----------
+
+dcspy.credentials module
+------------------------
+
+.. automodule:: dcspy.credentials
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 dcspy.dcp\_message module
 -------------------------
 
 .. automodule:: dcspy.dcp_message
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+dcspy.exceptions module
+-----------------------
+
+.. automodule:: dcspy.exceptions
    :members:
    :undoc-members:
    :show-inheritance:
@@ -53,18 +60,18 @@ dcspy.search\_criteria module
    :undoc-members:
    :show-inheritance:
 
-dcspy.server\_exceptions module
--------------------------------
-
-.. automodule:: dcspy.server_exceptions
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 dcspy.utils module
 ------------------
 
 .. automodule:: dcspy.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: dcspy
    :members:
    :undoc-members:
    :show-inheritance:

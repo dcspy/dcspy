@@ -1,4 +1,9 @@
-`dcspy` is a python tool for retrieving data from the NOAA GOES Satellite system.
+# Introduction
+
+The `dcspy` package is a Python library designed for retrieving GOES DCS message data from LRGS servers. Initially
+developed for deployment as an AWS Lambda function, its primary purpose is to execute periodic data retrieval for
+specified Data Collection Platforms (DCPs). It is important to note that this tool is not intended for decoding,
+processing, or archiving the received DCP messages.
 
 ## Installation
 
@@ -17,7 +22,7 @@ msg = DcpMessage.get(username="<USERNAME>",
                      password="<PASSWORD>",
                      search_criteria="<PATH TO SEARCH CRITERIA>",
                      host="<HOST>",
-                     debug=True)
+                     )
 print("\n".join(msg))
 ```
 
@@ -47,8 +52,8 @@ example is provided below.
     - `SOURCE` (can be `GOES_SELFTIMED` or `GOES_RANDOM`, or both) : list of strings
     - `DCP_ADDRESS` (can add multiple dcp addresses): list of strings
 - All other keywords will be ignored.
-- For more information about search criteria, check opendcs
-  doc [here](https://opendcs-env.readthedocs.io/en/stable/lrgs-userguide.html#search-criteria-file-format).
+- For more information about search criteria, check [opendcs
+  docs](https://opendcs-env.readthedocs.io/en/stable/legacy-lrgs-userguide.html#search-criteria-file-format).
 
 ## Contributors
 

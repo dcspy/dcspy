@@ -2,8 +2,8 @@
 
 The `dcspy` package is a Python library designed for retrieving GOES DCS message data from LRGS servers. Initially
 developed for deployment as an AWS Lambda function, its primary purpose is to execute periodic data retrieval for
-specified Data Collection Platforms (DCPs). It is important to note that this tool is not intended for decoding,
-processing, or archiving the received DCP messages.
+specified Data Collection Platforms (DCPs). The decoding, processing, or archiving the received DCP messages should
+be handled by other processes as this tool is intended only for retrieving the messages.
 
 ## Installation
 

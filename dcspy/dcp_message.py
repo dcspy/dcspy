@@ -1,7 +1,9 @@
-from .logs import write_error
+from .logs import get_logger
 from .search_criteria import SearchCriteria
 from .ldds_client import LddsClient
 from .ldds_message import LddsMessage
+
+logger = get_logger()
 
 
 class DcpMessage:
@@ -47,13 +49,13 @@ class DcpMessage:
         try:
             client.connect()
         except Exception as e:
-            write_error("Failed to connect to server. Error: " + str(e))
+            logger.exception("Failed to connect to server. Error: " + str(e))
             return
 
         try:
             client.authenticate_user(username, password)
         except Exception as e:
-            write_error("Failed to authenticate user. Error: " + str(e))
+            logger.error("Failed to authenticate user. Error: " + str(e))
             client.disconnect()
             raise
 
@@ -61,7 +63,7 @@ class DcpMessage:
             criteria = SearchCriteria.from_file(search_criteria)
             client.send_search_criteria(criteria)
         except Exception as e:
-            write_error("Failed to send search criteria. Error: " + str(e))
+            logger.error("Failed to send search criteria. Error: " + str(e))
             client.disconnect()
             raise
 

@@ -2,7 +2,9 @@ import os
 import json
 from dataclasses import dataclass
 from enum import Enum, verify, UNIQUE
-from .logs import write_debug
+from .logs import get_logger
+
+logger = get_logger()
 
 
 @verify(UNIQUE)
@@ -108,9 +110,9 @@ class SearchCriteria:
                         data = list(set(data))
                         sources = [DcpMessageSource[x].value for x in data]
                     case _:
-                        write_debug(f"Unrecognized key word {key_word_} in Search Criteria. Will be ignored.")
+                        logger.debug(f"Unrecognized key word {key_word_} in Search Criteria. Will be ignored.")
             search_criteria = SearchCriteria(lrgs_since, lrgs_until, dcp_addresses, sources)
-            write_debug(str(search_criteria))
+            logger.debug(str(search_criteria))
             return search_criteria
         except Exception as ex:
             raise Exception(f"Unexpected exception parsing search-criteria: {ex}")

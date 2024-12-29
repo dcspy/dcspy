@@ -1,11 +1,12 @@
 import socket
-import time
 from datetime import datetime, timezone
 from typing import Union
+from .logs import get_logger
 from .search_criteria import SearchCriteria
 from .ldds_message import LddsMessage, LddsMessageIds, LddsMessageConstants
-from .logs import write_debug, write_log
 from .credentials import Sha1, Sha256, Credentials
+
+logger = get_logger()
 
 
 class BasicClient:
@@ -42,11 +43,11 @@ class BasicClient:
         :return: None
         """
         try:
-            write_debug(f"Attempting to connect to {self.host}:{self.port}")
+            logger.debug(f"Attempting to connect to {self.host}:{self.port}")
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(self.timeout)
             self.socket.connect((self.host, self.port))
-            write_debug(f"Successfully connected to {self.host}:{self.port}")
+            logger.debug(f"Successfully connected to {self.host}:{self.port}")
         except socket.timeout as ex:
             raise IOError(f"Connection to {self.host}:{self.port} timed out") from ex
         except socket.error as ex:
@@ -61,9 +62,9 @@ class BasicClient:
         try:
             if self.socket:
                 self.socket.close()
-                write_debug("Closed socket")
+                logger.debug("Closed socket")
         except IOError as ex:
-            write_debug(f"Error during disconnect: {ex}")
+            logger.debug(f"Error during disconnect: {ex}")
         finally:
             self.socket = None
 
@@ -142,16 +143,16 @@ class LddsClient(BasicClient):
         is_authenticated = False
         for hash_algo in [Sha1, Sha256]:
             auth_str = credentials.get_authenticated_hello(datetime.now(timezone.utc), hash_algo())
-            write_debug(auth_str)
+            logger.debug(auth_str)
             ldds_message = self.request_dcp_message(msg_id, auth_str)
             server_error = ldds_message.server_error
             if server_error is not None:
-                write_debug(str(server_error))
+                logger.debug(str(server_error))
             else:
                 is_authenticated = True
 
         if is_authenticated:
-            write_debug(f"Authenticated user: {user_name}")
+            logger.debug(f"Authenticated user: {user_name}")
         else:
             raise Exception(f"Could not authenticate for user:{user_name}\n{server_error}")
 
@@ -185,7 +186,7 @@ class LddsClient(BasicClient):
         :return: None
         """
         data_to_send = bytearray(50) + bytes(search_criteria)
-        write_debug(f"Sending criteria message (filesize = {len(data_to_send)} bytes)")
+        logger.debug(f"Sending criteria message (filesize = {len(data_to_send)} bytes)")
         ldds_message = self.request_dcp_message(LddsMessageIds.search_criteria,
                                                 data_to_send)
 
@@ -193,7 +194,7 @@ class LddsClient(BasicClient):
         if server_error is not None:
             server_error.raise_exception()
         else:
-            write_log("Search criteria sent successfully.")
+            logger.info("Search criteria sent successfully.")
 
     def request_dcp_blocks(self,
                            ) -> list[LddsMessage]:
@@ -211,7 +212,7 @@ class LddsClient(BasicClient):
                 server_error = response.server_error
                 if server_error is not None:
                     if server_error.is_end_of_message:
-                        write_log(server_error.description)
+                        logger.info(server_error.description)
                         break
                     else:
                         server_error.raise_exception()
@@ -219,7 +220,7 @@ class LddsClient(BasicClient):
 
             return dcp_messages
         except Exception as err:
-            write_debug(f"Error receiving data: {err}")
+            logger.debug(f"Error receiving data: {err}")
             raise err
 
     def send_goodbye(self):
@@ -231,4 +232,4 @@ class LddsClient(BasicClient):
         message_id = LddsMessageIds.goodbye
         ldds_message = self.request_dcp_message(message_id, "")
         server_error = ldds_message.server_error
-        write_debug(ldds_message.to_bytes())
+        logger.debug(ldds_message.to_bytes())

@@ -1,6 +1,5 @@
 from enum import Enum, verify, UNIQUE
 from .utils import ByteUtil
-from .logs import write_debug
 
 
 @verify(UNIQUE)

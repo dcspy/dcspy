@@ -17,7 +17,7 @@ class ByteUtil:
         if end == -1:
             return b[offset:].decode()
         else:
-            return b[offset:end + 1].decode()
+            return b[offset:end].decode()
 
     @staticmethod
     def to_hex_string(b: Union[bytes, bytearray]):

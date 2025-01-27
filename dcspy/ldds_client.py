@@ -43,11 +43,11 @@ class BasicClient:
         :return: None
         """
         try:
-            logger.debug(f"Attempting to connect to {self.host}:{self.port}")
+            logger.info(f"Connecting to {self.host}:{self.port}")
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(self.timeout)
             self.socket.connect((self.host, self.port))
-            logger.debug(f"Successfully connected to {self.host}:{self.port}")
+            logger.info(f"Successfully connected to {self.host}:{self.port}")
         except socket.timeout as ex:
             raise IOError(f"Connection to {self.host}:{self.port} timed out") from ex
         except socket.error as ex:
@@ -152,7 +152,7 @@ class LddsClient(BasicClient):
                 is_authenticated = True
 
         if is_authenticated:
-            logger.debug(f"Authenticated user: {user_name}")
+            logger.info("Successfully authenticated user")
         else:
             raise Exception(f"Could not authenticate for user:{user_name}\n{server_error}")
 

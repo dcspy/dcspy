@@ -1,3 +1,5 @@
+from typing import Union
+from pathlib import Path
 from .logs import get_logger
 from .search_criteria import SearchCriteria
 from .ldds_client import LddsClient
@@ -22,7 +24,7 @@ class DcpMessage:
     @staticmethod
     def get(username: str,
             password: str,
-            search_criteria: str,
+            search_criteria: Union[dict, str, Path],
             host: str,
             port: int = 16003,
             timeout: int = 30,
@@ -49,23 +51,30 @@ class DcpMessage:
         try:
             client.connect()
         except Exception as e:
-            logger.exception("Failed to connect to server. Error: " + str(e))
-            return
+            logger.error("Failed to connect to server.")
+            raise e
 
         try:
             client.authenticate_user(username, password)
         except Exception as e:
-            logger.error("Failed to authenticate user. Error: " + str(e))
+            logger.error("Failed to authenticate user.")
             client.disconnect()
-            raise
+            raise e
+
+        match search_criteria:
+            case str() | Path():
+                criteria = SearchCriteria.from_file(search_criteria)
+            case dict():
+                criteria = SearchCriteria.from_dict(search_criteria)
+            case _:
+                raise TypeError("search_criteria must be a filepath or a dict.")
 
         try:
-            criteria = SearchCriteria.from_file(search_criteria)
             client.send_search_criteria(criteria)
         except Exception as e:
-            logger.error("Failed to send search criteria. Error: " + str(e))
+            logger.error("Failed to send search criteria.")
             client.disconnect()
-            raise
+            raise e
 
         # Retrieve the DCP block and process it into individual messages
         dcp_blocks = client.request_dcp_blocks()

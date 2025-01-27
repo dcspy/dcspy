@@ -83,8 +83,10 @@ class SearchCriteria:
         for source in sources:
             self.__add_source(source)
 
-    @staticmethod
-    def from_file(file: str):
+    @classmethod
+    def from_file(cls,
+                  file: str,
+                  ) -> "SearchCriteria":
         """
         Create a SearchCriteria object from a JSON file.
 
@@ -94,10 +96,23 @@ class SearchCriteria:
         """
         with open(file, 'r') as json_file:
             json_data = json.load(json_file)
+        return cls.from_dict(json_data)
+
+    @classmethod
+    def from_dict(cls,
+                  data: dict,
+                  ) -> "SearchCriteria":
+        """
+        Create a SearchCriteria object from a dict.
+
+        :param data: dict containing search criteria data.
+        :return: A SearchCriteria object.
+        :raises Exception: If there is an issue parsing the JSON file.
+        """
 
         lrgs_since, lrgs_until, dcp_addresses, sources = "last", "now", [], []
         try:
-            for key_word_, data in json_data.items():
+            for key_word_, data in data.items():
                 match key_word_:
                     case "DRS_SINCE":
                         lrgs_since = data
@@ -111,13 +126,15 @@ class SearchCriteria:
                         sources = [DcpMessageSource[x].value for x in data]
                     case _:
                         logger.debug(f"Unrecognized key word {key_word_} in Search Criteria. Will be ignored.")
-            search_criteria = SearchCriteria(lrgs_since, lrgs_until, dcp_addresses, sources)
+            search_criteria = cls(lrgs_since, lrgs_until, dcp_addresses, sources)
             logger.debug(str(search_criteria))
             return search_criteria
         except Exception as ex:
             raise Exception(f"Unexpected exception parsing search-criteria: {ex}")
 
-    def __add_source(self, source: int):
+    def __add_source(self,
+                     source: int,
+                     ):
         """
         Add a source to the search criteria if not already present.
 
@@ -152,7 +169,7 @@ class SearchCriteria:
 
         return ''.join(ret)
 
-    def __bytes__(self):
+    def __bytes__(self) -> bytes:
         """
         Convert the SearchCriteria object to a bytes format for network transmission.
 

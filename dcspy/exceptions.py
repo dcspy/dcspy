@@ -1,4 +1,5 @@
-from enum import Enum, verify, UNIQUE
+from enum import UNIQUE, Enum, verify
+
 from .utils import ByteUtil
 
 
@@ -80,10 +81,7 @@ class ServerErrorCode(Enum):
 
 
 class ServerError:
-    def __init__(self,
-                 message: str,
-                 server_code_no: int = 0,
-                 system_code_no: int = 0):
+    def __init__(self, message: str, server_code_no: int = 0, system_code_no: int = 0):
         """
 
         :param message:
@@ -97,7 +95,10 @@ class ServerError:
         self.is_end_of_message = self.is_end_of_message()
 
     def is_end_of_message(self):
-        if self.server_code_no in (ServerErrorCode.DUNTIL.value, ServerErrorCode.DUNTILDRS.value):
+        if self.server_code_no in (
+            ServerErrorCode.DUNTIL.value,
+            ServerErrorCode.DUNTILDRS.value,
+        ):
             return True
         return False
 
@@ -118,7 +119,9 @@ class ServerError:
             return ServerError("")
         error_string = ByteUtil.extract_string(message)
         split_error_string = error_string[1:].split(",", maxsplit=2)
-        sever_code_no, system_code_no, error_string = [x.strip() for x in split_error_string]
+        sever_code_no, system_code_no, error_string = [
+            x.strip() for x in split_error_string
+        ]
         return ServerError(error_string, int(sever_code_no), int(system_code_no))
 
     def raise_exception(self):
@@ -134,9 +137,11 @@ class ServerError:
         return r
 
     def __eq__(self, other):
-        return (self.server_code_no == other.server_code_no and
-                self.system_code_no == other.system_code_no and
-                self.message == other.message)
+        return (
+            self.server_code_no == other.server_code_no
+            and self.system_code_no == other.system_code_no
+            and self.message == other.message
+        )
 
 
 class ProtocolError(Exception):

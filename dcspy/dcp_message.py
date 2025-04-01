@@ -1,9 +1,10 @@
-from typing import Union
 from pathlib import Path
-from .logs import get_logger
-from .search_criteria import SearchCriteria
+from typing import Union
+
 from .ldds_client import LddsClient
 from .ldds_message import LddsMessage
+from .logs import get_logger
+from .search_criteria import SearchCriteria
 
 logger = get_logger()
 
@@ -22,13 +23,14 @@ class DcpMessage:
     HEADER_LENGTH = 37
 
     @staticmethod
-    def get(username: str,
-            password: str,
-            search_criteria: Union[dict, str, Path],
-            host: str,
-            port: int = 16003,
-            timeout: int = 30,
-            ):
+    def get(
+        username: str,
+        password: str,
+        search_criteria: Union[dict, str, Path],
+        host: str,
+        port: int = 16003,
+        timeout: int = 30,
+    ):
         """
         Fetches DCP messages from a server based on provided search criteria.
 
@@ -85,8 +87,9 @@ class DcpMessage:
         return dcp_messages
 
     @staticmethod
-    def explode(message_blocks: list[LddsMessage],
-                ) -> list[str]:
+    def explode(
+        message_blocks: list[LddsMessage],
+    ) -> list[str]:
         """
         Splits a message block bytes containing multiple DCP messages into individual messages.
 
@@ -103,7 +106,9 @@ class DcpMessage:
             start_index = 0
             while start_index < ldds_message.message_length:
                 # Extract the length of the current message
-                message_length = int(message[(start_index + data_length):(start_index + header_length)])
+                message_length = int(
+                    message[(start_index + data_length) : (start_index + header_length)]
+                )
                 # Extract the entire message using the determined length
                 end_index = start_index + header_length + message_length
                 dcp_message = message[start_index:end_index]

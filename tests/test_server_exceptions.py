@@ -1,4 +1,5 @@
 import unittest
+
 from dcspy.exceptions import ServerError
 
 
@@ -13,8 +14,10 @@ class TestServerExceptions(unittest.TestCase):
         se = ServerError.parse(b"?55,0,Server requires SHA-256.")
         self.assertEqual(se.server_code_no, 55)
         self.assertEqual(se.system_code_no, 0)
-        expected = ("System Code #0; Server Code #55 - Server requires SHA-256. "
-                    "(Server requires strong encryption algorithm)")
+        expected = (
+            "System Code #0; Server Code #55 - Server requires SHA-256. "
+            "(Server requires strong encryption algorithm)"
+        )
         self.assertEqual(str(se), expected)
 
     def test_server_error_eq(self):

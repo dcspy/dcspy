@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 setup(
     name="dcspy",
@@ -8,5 +8,5 @@ setup(
     license="",
     author="dcspy authors",
     author_email="dbaral@valleywater.org",
-    description="python tool for retrieving data from the NOAA GOES Satellite system."
+    description="python tool for retrieving data from the NOAA GOES Satellite system.",
 )

@@ -1,10 +1,11 @@
 import unittest
+
 from dcspy.ldds_client import LddsClient
 
 
 class TestBasicClient(unittest.TestCase):
     def test_timeout(self):
-        client = LddsClient('10.255.255.1', 80, 0.1)
+        client = LddsClient("10.255.255.1", 80, 0.1)
         try:
             client.connect()
         except IOError as err:

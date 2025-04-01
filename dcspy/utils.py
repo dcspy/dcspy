@@ -4,8 +4,7 @@ from typing import Union
 
 class ByteUtil:
     @staticmethod
-    def extract_string(b: Union[bytes, bytearray],
-                       offset: int = 0) -> str:
+    def extract_string(b: Union[bytes, bytearray], offset: int = 0) -> str:
         """
         Pull a null-terminated string out of a byte array starting at given offset.
 
@@ -13,7 +12,7 @@ class ByteUtil:
         :param offset: The offset to start reading from. Default is 0.
         :return: The extracted string.
         """
-        end = b.find(b'\x00', offset)
+        end = b.find(b"\x00", offset)
         if end == -1:
             return b[offset:].decode()
         else:

@@ -1,5 +1,6 @@
-from datetime import datetime
 import hashlib
+from datetime import datetime
+
 from dcspy.utils import ByteUtil
 
 
@@ -21,7 +22,9 @@ class HashAlgo:
 
         :param algorithm: The name of the hashing algorithm (e.g., "sha1", "sha256").
         """
-        assert algorithm in {"sha1", "sha256"}, f"{algorithm} is not a supported hash algorithm"
+        assert algorithm in {"sha1", "sha256"}, (
+            f"{algorithm} is not a supported hash algorithm"
+        )
         self.algorithm = algorithm
 
     def new(self):
@@ -62,9 +65,7 @@ class Sha256(HashAlgo):
 
 
 class Credentials:
-    def __init__(self,
-                 username: str = None,
-                 password: str = None):
+    def __init__(self, username: str = None, password: str = None):
         """
         Initialize the Credentials with a username and password.
 
@@ -74,8 +75,7 @@ class Credentials:
         self.username = username
         self.preliminary_hash = self.get_preliminary_hash(password)
 
-    def get_preliminary_hash(self,
-                             password: str) -> bytes:
+    def get_preliminary_hash(self, password: str) -> bytes:
         """
         Generate the preliminary hash for the password.
 
@@ -93,9 +93,7 @@ class Credentials:
         md.update(password_b)
         return md.digest()
 
-    def get_authenticator_hash(self,
-                               time: datetime,
-                               hash_algo: HashAlgo) -> str:
+    def get_authenticator_hash(self, time: datetime, hash_algo: HashAlgo) -> str:
         """
         Generate an authenticator hash using a specified hash algorithm.
 
@@ -120,9 +118,7 @@ class Credentials:
         authenticator_bytes = md.digest()
         return ByteUtil.to_hex_string(authenticator_bytes)
 
-    def get_authenticated_hello(self,
-                                time: datetime,
-                                hash_algo: HashAlgo):
+    def get_authenticated_hello(self, time: datetime, hash_algo: HashAlgo):
         """
         Create an authenticated hello message for the user.
 
@@ -137,5 +133,7 @@ class Credentials:
         time_str = time.strftime("%y%j%H%M%S")
         protocol_version = 14
 
-        authenticated_hello = f"{self.username} {time_str} {authenticator_hash} {protocol_version}"
+        authenticated_hello = (
+            f"{self.username} {time_str} {authenticator_hash} {protocol_version}"
+        )
         return authenticated_hello

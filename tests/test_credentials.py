@@ -1,6 +1,7 @@
 import unittest
 from datetime import datetime
-from dcspy.credentials import Credentials, Sha1, Sha256, HashAlgo
+
+from dcspy.credentials import Credentials, HashAlgo, Sha1, Sha256
 
 
 class InvalidHashClass(HashAlgo):
@@ -16,7 +17,9 @@ class TestAuthenticator(unittest.TestCase):
         time = datetime(2022, 4, 14, 22, 20, 0)  # Example timestamp
         auth_str = credentials.get_authenticator_hash(time, Sha1())
 
-        expected_auth_str = "C91F758CDED80910C0C4FC11CBEB31395AABB9B4"  # Example expected string
+        expected_auth_str = (
+            "C91F758CDED80910C0C4FC11CBEB31395AABB9B4"  # Example expected string
+        )
         self.assertEqual(auth_str, expected_auth_str)
 
     def test_to_string_sha256(self):
@@ -26,7 +29,9 @@ class TestAuthenticator(unittest.TestCase):
         time = datetime(2022, 4, 14, 22, 20, 0)
         auth_str = credentials.get_authenticator_hash(time, Sha256())
 
-        expected_auth_str = "850D6D0BA8D5C00BFF01D507E9C50B3E639C9C0EC93B1E2A84BE2673581439DF"
+        expected_auth_str = (
+            "850D6D0BA8D5C00BFF01D507E9C50B3E639C9C0EC93B1E2A84BE2673581439DF"
+        )
         self.assertEqual(auth_str, expected_auth_str)
 
     def test_invalid_algorithm(self):

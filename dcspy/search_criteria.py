@@ -1,7 +1,8 @@
-import os
 import json
+import os
 from dataclasses import dataclass
-from enum import Enum, verify, UNIQUE
+from enum import UNIQUE, Enum, verify
+
 from .logs import get_logger
 
 logger = get_logger()
@@ -17,6 +18,7 @@ class DcpMessageSource(Enum):
     :param GOES_SELFTIMED: Represents a self-timed GOES message source.
     :param GOES_RANDOM: Represents a random GOES message source.
     """
+
     GOES = 0x00000000
     GOES_SELFTIMED = 0x00010000
     GOES_RANDOM = 0x00020000
@@ -30,6 +32,7 @@ class SearchCriteriaConstants:
 
     :param max_sources: The maximum number of sources that can be added to the search criteria.
     """
+
     max_sources: int = 12
 
 
@@ -62,11 +65,13 @@ class DcpAddress:
 
 
 class SearchCriteria:
-    def __init__(self,
-                 lrgs_since: str,
-                 lrgs_until: str,
-                 dcp_address: list[DcpAddress],
-                 sources: list[int]):
+    def __init__(
+        self,
+        lrgs_since: str,
+        lrgs_until: str,
+        dcp_address: list[DcpAddress],
+        sources: list[int],
+    ):
         """
         Initialize the SearchCriteria with provided parameters.
 
@@ -84,9 +89,10 @@ class SearchCriteria:
             self.__add_source(source)
 
     @classmethod
-    def from_file(cls,
-                  file: str,
-                  ) -> "SearchCriteria":
+    def from_file(
+        cls,
+        file: str,
+    ) -> "SearchCriteria":
         """
         Create a SearchCriteria object from a JSON file.
 
@@ -94,14 +100,15 @@ class SearchCriteria:
         :return: A SearchCriteria object.
         :raises Exception: If there is an issue parsing the JSON file.
         """
-        with open(file, 'r') as json_file:
+        with open(file, "r") as json_file:
             json_data = json.load(json_file)
         return cls.from_dict(json_data)
 
     @classmethod
-    def from_dict(cls,
-                  data: dict,
-                  ) -> "SearchCriteria":
+    def from_dict(
+        cls,
+        data: dict,
+    ) -> "SearchCriteria":
         """
         Create a SearchCriteria object from a dict.
 
@@ -125,16 +132,19 @@ class SearchCriteria:
                         data = list(set(data))
                         sources = [DcpMessageSource[x].value for x in data]
                     case _:
-                        logger.debug(f"Unrecognized key word {key_word_} in Search Criteria. Will be ignored.")
+                        logger.debug(
+                            f"Unrecognized key word {key_word_} in Search Criteria. Will be ignored."
+                        )
             search_criteria = cls(lrgs_since, lrgs_until, dcp_addresses, sources)
             logger.debug(str(search_criteria))
             return search_criteria
         except Exception as ex:
             raise Exception(f"Unexpected exception parsing search-criteria: {ex}")
 
-    def __add_source(self,
-                     source: int,
-                     ):
+    def __add_source(
+        self,
+        source: int,
+    ):
         """
         Add a source to the search criteria if not already present.
 
@@ -167,7 +177,7 @@ class SearchCriteria:
             source_name = DcpMessageSource(self.sources[i]).name
             ret.append(f"SOURCE: {source_name}{line_separator}")
 
-        return ''.join(ret)
+        return "".join(ret)
 
     def __bytes__(self) -> bytes:
         """
@@ -175,7 +185,7 @@ class SearchCriteria:
 
         :return: A bytes representation of the search criteria.
         """
-        return self.__str__().encode('utf-8')
+        return self.__str__().encode("utf-8")
 
     def __eq__(self, other) -> bool:
         """

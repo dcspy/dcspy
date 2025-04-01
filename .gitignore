@@ -8,3 +8,5 @@ dist/
 docs/_build/    
 venv/
 test_search_criteria.json
+.venv
+.python-version

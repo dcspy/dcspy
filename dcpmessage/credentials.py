@@ -1,7 +1,7 @@
 import hashlib
 from datetime import datetime
 
-from dcspy.utils import ByteUtil
+from dcpmessage.utils import ByteUtil
 
 
 class HashAlgo:

@@ -1,6 +1,6 @@
 # Introduction
 
-The `dcspy` package is a Python library designed for retrieving GOES DCS message data from LRGS servers. Initially
+The `dcpmessage` package is a Python library designed for retrieving GOES DCS message data from LRGS servers. Initially
 developed for deployment as an AWS Lambda function, its primary purpose is to execute periodic data retrieval for
 specified Data Collection Platforms (DCPs). The decoding, processing, or archiving the received DCP messages should
 be handled by other processes as this tool is intended only for retrieving the messages.
@@ -10,13 +10,13 @@ be handled by other processes as this tool is intended only for retrieving the m
 Download the latest `.tar.gz` from [releases page](https://github.com/dcspy/dcspy/releases) and install it using `pip`
 
 ```shell
-pip install dcspy-#.#.#.tar.gz 
+pip install dcpmessage-#.#.#.tar.gz 
 ```
 
 ## Usage
 
 ```python
-from dcspy import DcpMessage
+from dcpmessage import DcpMessage
 
 msg = DcpMessage.get(username="<USERNAME>",
                      password="<PASSWORD>",
@@ -46,7 +46,7 @@ example is provided below.
 }
 ```
 
-- NOTE THAT, only following keywords are supported by `dcspy` at this point:
+- NOTE THAT, only following keywords are supported by `dcpmessage` at this point:
     - `DRS_SINCE`: string
     - `DRS_UNTIL`: string
     - `SOURCE` (can be `GOES_SELFTIMED` or `GOES_RANDOM`, or both) : list of strings

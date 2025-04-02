@@ -1,6 +1,6 @@
 import unittest
 
-from dcspy.utils import ByteUtil
+from dcpmessage.utils import ByteUtil
 
 
 class TestUtils(unittest.TestCase):

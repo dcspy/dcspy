@@ -1,7 +1,7 @@
 import unittest
 
-from dcspy.dcp_message import DcpMessage
-from dcspy.ldds_message import LddsMessage, LddsMessageIds
+from dcpmessage.dcp_message import DcpMessage
+from dcpmessage.ldds_message import LddsMessage, LddsMessageIds
 
 
 class TestDcpMessage(unittest.TestCase):

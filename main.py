@@ -1,8 +1,8 @@
 import json
 import logging
 
-from dcspy.dcp_message import DcpMessage
-from dcspy.logs import get_logger
+from dcpmessage.dcp_message import DcpMessage
+from dcpmessage.logs import get_logger
 
 logger = get_logger()
 logger.setLevel(logging.DEBUG)

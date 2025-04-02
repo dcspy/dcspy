@@ -1,7 +1,7 @@
-API Docs
-========
+dcpmessage
+==========
 
 .. toctree::
    :maxdepth: 4
 
-   dcspy
+   dcpmessage

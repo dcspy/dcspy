@@ -2,7 +2,7 @@ import json
 import os
 import unittest
 
-from dcspy.search_criteria import DcpAddress, DcpMessageSource, SearchCriteria
+from dcpmessage.search_criteria import DcpAddress, DcpMessageSource, SearchCriteria
 
 
 class TestSearchCriteria(unittest.TestCase):

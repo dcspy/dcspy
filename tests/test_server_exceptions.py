@@ -1,6 +1,6 @@
 import unittest
 
-from dcspy.exceptions import ServerError
+from dcpmessage.exceptions import ServerError
 
 
 class TestServerExceptions(unittest.TestCase):

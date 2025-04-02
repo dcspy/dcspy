@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime
 
-from dcspy.credentials import Credentials, HashAlgo, Sha1, Sha256
+from dcpmessage.credentials import Credentials, HashAlgo, Sha1, Sha256
 
 
 class InvalidHashClass(HashAlgo):

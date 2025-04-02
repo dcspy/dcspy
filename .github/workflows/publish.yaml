@@ -26,6 +26,7 @@ jobs:
         with:
           uri: https://astral.sh/uv/install.sh
           name: uv
+          version: latest
 
       - name: Build package with uv
         run: uv build

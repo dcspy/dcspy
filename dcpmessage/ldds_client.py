@@ -1,13 +1,13 @@
+import logging
 import socket
 from datetime import datetime, timezone
 from typing import Union
 
 from .credentials import Credentials, Sha1, Sha256
 from .ldds_message import LddsMessage, LddsMessageConstants, LddsMessageIds
-from .logs import get_logger
 from .search_criteria import SearchCriteria
 
-logger = get_logger()
+logger = logging.getLogger(__name__)
 
 
 class BasicClient:

@@ -1,12 +1,12 @@
+import logging
 from pathlib import Path
 from typing import Union
 
 from .ldds_client import LddsClient
 from .ldds_message import LddsMessage
-from .logs import get_logger
 from .search_criteria import SearchCriteria
 
-logger = get_logger()
+logger = logging.getLogger(__name__)
 
 
 class DcpMessage:

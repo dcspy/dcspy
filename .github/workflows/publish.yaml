@@ -22,14 +22,13 @@ jobs:
           python-version: "3.13"
 
       - name: Install uv
-        uses: supplypike/setup-bin@v3
-        with:
-          uri: https://astral.sh/uv/install.sh
-          name: uv
-          version: latest
+        run: curl -Ls https://astral.sh/uv/install.sh | sh
 
       - name: Build package with uv
-        run: uv build
+        run: |
+          uv --version
+          uv build
+          ls -lh dist/
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

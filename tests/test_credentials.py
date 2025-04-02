@@ -1,5 +1,7 @@
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+
+PTZ = timezone(timedelta(hours=-7))
 
 from dcpmessage.credentials import Credentials, HashAlgo, Sha1, Sha256
 
@@ -14,7 +16,7 @@ class TestAuthenticator(unittest.TestCase):
         username = "test_user"
         password = "test_pass"
         credentials = Credentials(username=username, password=password)
-        time = datetime(2022, 4, 14, 22, 20, 0)  # Example timestamp
+        time = datetime(2022, 4, 14, 22, 20, 0, tzinfo=PTZ)  # Example timestamp
         auth_str = credentials.get_authenticator_hash(time, Sha1())
 
         expected_auth_str = (
@@ -26,7 +28,7 @@ class TestAuthenticator(unittest.TestCase):
         username = "test_user"
         password = "test_pass"
         credentials = Credentials(username=username, password=password)
-        time = datetime(2022, 4, 14, 22, 20, 0)
+        time = datetime(2022, 4, 14, 22, 20, 0, tzinfo=PTZ)
         auth_str = credentials.get_authenticator_hash(time, Sha256())
 
         expected_auth_str = (

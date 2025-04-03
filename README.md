@@ -62,13 +62,13 @@ if __name__ == "__main__":
 
 To quickly install `dcpmessage` in a temporary environment with `uv` and run the script above, follow these steps:
 
-#### 1. Install `uv` - refer to the `uv` [website](https://docs.astral.sh/uv/getting-started/installation/).
+1. Install `uv` - refer to the `uv` [website](https://docs.astral.sh/uv/getting-started/installation/).
 
-#### 2. Copy the example script to create `main.py` script
+2. Copy the [example script](#example-script) to create `main.py` script
 
-> 🔐 Replace `<USERNAME>`, `<PASSWORD>`, and `<DCP ADDRESS>` with your actual NOAA LRGS credentials and DCP address.
+    > 🔐 Replace `<USERNAME>`, `<PASSWORD>`, and `<DCP ADDRESS>` with your actual NOAA LRGS credentials and DCP address.
 
-#### 3. Run the script using `uv`
+3. Run the script using `uv`
 
 ```bash
 uv run --with dcpmessage ./main.py

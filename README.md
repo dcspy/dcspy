@@ -1,34 +1,83 @@
-# Introduction
+# dcpmessage
 
-The `dcpmessage` package is a Python library designed for retrieving GOES DCS message data from LRGS servers. Initially
-developed for deployment as an AWS Lambda function, its primary purpose is to execute periodic data retrieval for
-specified Data Collection Platforms (DCPs). The decoding, processing, or archiving the received DCP messages should
-be handled by other processes as this tool is intended only for retrieving the messages.
+`dcpmessage` is a lightweight Python library for retrieving **GOES DCS messages** from **LRGS servers** using defined
+search criteria. It was originally developed for deployment as an AWS Lambda function for periodic message retrieval
+from specified Data Collection Platforms (DCPs).
 
-## Installation
+> 🔹 Note: This package only retrieves DCP messages. Decoding, processing, or archiving must be handled externally.
 
-Download the latest `.tar.gz` from [releases page](https://github.com/dcspy/dcspy/releases) and install it using `pip`
+## 🚀 Installation
+
+You can install the package from [PyPI](https://pypi.org/project/dcpmessage/) using `pip` or [
+`uv`](https://docs.astral.sh/uv/concepts/projects/dependencies/).
 
 ```shell
-pip install dcpmessage-#.#.#.tar.gz 
+# using pip
+pip install dcpmessage
 ```
 
-## Usage
+OR
+
+```shell
+# using uv
+uv add dcpmessage
+```
+
+## 🧪 Usage
+
+The script below demonstrates an example of using `dcpmessage`.
+
+### Example Script
 
 ```python
-from dcpmessage import DcpMessage
+# main.py
+import logging
 
-msg = DcpMessage.get(username="<USERNAME>",
-                     password="<PASSWORD>",
-                     search_criteria="<PATH TO SEARCH CRITERIA>",
-                     host="<HOST>",
-                     )
-print("\n".join(msg))
+from dcpmessage.dcp_message import DcpMessage
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(levelname)s]\t%(asctime)s\t[%(pathname)s]\t[%(lineno)s]\t"%(message)s"',
+    datefmt="%Y-%m-%dT%H:%M:%S%z",
+)
+
+if __name__ == "__main__":
+    messages = DcpMessage.get(
+        username="<USERNAME>",  # <-- your NOAA LRGS username
+        password="<PASSWORD>",  # <-- your NOAA LRGS password
+        search_criteria={
+            "DRS_SINCE": "now - 2 hour",
+            "DRS_UNTIL": "now",
+            "SOURCE": ["GOES_SELFTIMED", "GOES_RANDOM"],
+            "DCP_ADDRESS": ["<DCP ADDRESS>"],  # <-- your DCP addresses
+        },
+        host="cdadata.wcda.noaa.gov",
+    )
+
+    for message in messages:
+        print(message)
 ```
 
-## Search Criteria
+### 🔧 Quick Test with `uv`
 
-Path to Search Criteria file should be passed when getting dcp messages. Search Criteria file should be `json`. An
+To quickly install `dcpmessage` in a temporary environment with `uv` and run the script above, follow these steps:
+
+#### 1. Install `uv` - refer to the `uv` [website](https://docs.astral.sh/uv/getting-started/installation/).
+
+#### 2. Copy the example script to create `main.py` script
+
+> 🔐 Replace `<USERNAME>`, `<PASSWORD>`, and `<DCP ADDRESS>` with your actual NOAA LRGS credentials and DCP address.
+
+#### 3. Run the script using `uv`
+
+```bash
+uv run --with dcpmessage ./main.py
+```
+
+## 📁 Search Criteria
+
+Search Criteria should be provided to retrieve messages for specified DCPs. Search criteria can be passed either as the
+path to the search criteria json file or a dict. An
 example is provided below.
 
 ```json
@@ -46,16 +95,22 @@ example is provided below.
 }
 ```
 
-- NOTE THAT, only following keywords are supported by `dcpmessage` at this point:
-    - `DRS_SINCE`: string
-    - `DRS_UNTIL`: string
-    - `SOURCE` (can be `GOES_SELFTIMED` or `GOES_RANDOM`, or both) : list of strings
-    - `DCP_ADDRESS` (can add multiple dcp addresses): list of strings
-- All other keywords will be ignored.
-- For more information about search criteria, check [opendcs
-  docs](https://opendcs-env.readthedocs.io/en/stable/legacy-lrgs-userguide.html#search-criteria-file-format).
+### 🔍 Supported Fields
 
-## Contributors
+Only the following search criteria keys are currently supported:
+
+| Key           | Type           | Description                                                 |
+|---------------|----------------|-------------------------------------------------------------|
+| `DRS_SINCE`   | `string`       | Start time for data query (e.g., `"now - 1 hour"`)          |
+| `DRS_UNTIL`   | `string`       | End time for data query (e.g., `"now"`)                     |
+| `SOURCE`      | `list[string]` | Must be one or both of: `"GOES_SELFTIMED"`, `"GOES_RANDOM"` |
+| `DCP_ADDRESS` | `list[string]` | One or more DCP addresses to query                          |
+
+> ⚠️ All other keys in the criteria file will be ignored. For detailed information on the search criteria format, see
+> the
+[opendcs docs](https://opendcs-env.readthedocs.io/en/stable/legacy-lrgs-userguide.html#search-criteria-file-format).
+
+## 👥 Contributors
 
 - [Manoj Kotteda](https://github.com/orgs/dcspy/people/manojkotteda)
 - Darshan Baral

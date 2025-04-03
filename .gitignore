@@ -1,12 +1,34 @@
+# Byte-compiled / cache files
 __pycache__/
-.idea/
-*.egg-info/     
-*.sc
-credentials.json
-creds.txt       
-dist/
-docs/_build/    
+
+# Virtual environments
 venv/
-test_search_criteria.json
-.venv
+.venv/
+
+# Editor/IDE settings
+.vscode/
+.idea/
+
+# Packaging files
+*.egg-info/
+dist/
+build/
+
+# Python environment management
 .python-version
+
+# Documentation builds
+docs/_build/
+
+# Credentials and sensitive data
+credentials.json
+creds.txt
+
+
+# Test-specific files
+test_search_criteria.json
+
+# Miscellaneous
+*.sc
+.DS_Store
+Thumbs.db

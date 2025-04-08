@@ -110,17 +110,24 @@ class LddsClient(BasicClient):
         :raises IOError: If the socket is not connected.
         """
         if self.socket is None:
-            raise IOError("BasicClient socket closed.")
+            raise IOError("Socket closed before receiving any data.")
 
-        data = self.socket.recv(buffer_size)
-        if len(data) == 0:
-            raise IOError("BasicClient socket closed.")
+        first_chunk = self.socket.recv(buffer_size)
+        if not first_chunk:
+            raise IOError("Socket closed while receiving first chunk of data.")
 
-        ldds_message_length = LddsMessage.get_total_length(data)
-        while len(data) < ldds_message_length:
-            data += self.socket.recv(buffer_size)
+        total_message_length = LddsMessage.get_total_length(first_chunk)
+        received_message_length = len(first_chunk)
+        chunks = [first_chunk]
 
-        return data
+        while received_message_length < total_message_length:
+            chunk = self.socket.recv(buffer_size)
+            if not chunk:
+                raise IOError("Socket closed before receiving full message.")
+            received_message_length += len(chunk)
+            chunks.append(chunk)
+
+        return b"".join(chunks)
 
     def authenticate_user(
         self,
@@ -209,7 +216,6 @@ class LddsClient(BasicClient):
         :return: The received DCP block as bytearray.
         """
         msg_id = LddsMessageIds.dcp_block
-        max_data_length = LddsMessageConstants.MAX_DATA_LENGTH
         dcp_messages = []
         try:
             while True:
